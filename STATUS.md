@@ -4,7 +4,7 @@ State of the project as of 2026-10-08. The session that changes the project's st
 
 ## Phase
 
-Design. The repository holds decision records, open questions, plans for the profile and for the adopter's capabilities, and no code.
+Design, with a package skeleton. The repository holds decision records, open questions, plans for the profile and for the adopter's capabilities, five thread queries, a graph contract skeleton, and a `weft` package with no functionality beyond its version. CI builds the sysml-toolkit wheel at the pinned commit and runs the tests on Linux and Windows for Python 3.11 to 3.13.
 
 ## Settled
 
@@ -15,16 +15,26 @@ Design. The repository holds decision records, open questions, plans for the pro
 | [0003](docs/decisions/0003-holonic-for-graph-organization.md) | holonic organizes the derived graphs, one holon per model version. |
 | [0004](docs/decisions/0004-python.md) | Python, 3.11 or later. |
 
+## Proposed
+
+| Decision | Content |
+|---|---|
+| [0005](docs/decisions/0005-component-stereotype.md) | Component is a role. A required, open `bearer` list records whether a material artifact bears it, an information content entity's concretization does, or a project-declared kind does. Accepted 2026-10-08. |
+| [0006](docs/decisions/0006-interface-stereotype.md) | Interface applies to definitions and usages. Without `individual` they are specifications (directive information content entity). With `individual` they are realized connections (material entity) linked to the specification they specialize. Accepted 2026-10-08. |
+| [0007](docs/decisions/0007-action-definition-stereotype.md) | The `action def` stereotype is named Process and aligns to BFO process, because CCO's Function is a disposition. Accepted 2026-10-08. |
+
 ## Open work
 
 | Item | Location | State | Next action |
 |---|---|---|---|
 | Adopter capabilities | [docs/plans/adopter-capabilities.md](docs/plans/adopter-capabilities.md) | Drafted; four of five questions answered | Verify the three Kotar points under OQ11 with a model edited in Kotar. Decide in the profile work whether a user story is a use case or a requirement with a stakeholder |
+| Buildability review | [docs/reviews/2026-10-08-buildability.md](docs/reviews/2026-10-08-buildability.md) Items 1 to 5 and 7 closed in [zwelz3/weft#7](https://github.com/zwelz3/weft/pull/7): license, pins, package and CI, decisions 0005 to 0007, thread queries, and the upstream issue draft | Apache-2.0 is adopted (2026-10-08). Item 6 is spike 1, filed as [zwelz3/weft#8](https://github.com/zwelz3/weft/pull/8). Item 8's offline check is `tests/test_status.py`; the check against live issue state is not written |
 | Data for the spike | [zwelz3/weft#1](https://github.com/zwelz3/weft/issues/1) | Requested | The maintainer supplies a component, an instance table, trace data, and an adapter ontology excerpt |
-| Spike 1 | [zwelz3/weft#2](https://github.com/zwelz3/weft/issues/2) | Not started | Steps 1 to 5 and measurements M1 to M4 can start on a public example before #1 is answered. The adopter capabilities plan proposes taking the step 4 queries from the traceability matrix and gap analysis |
-| Profile | [docs/plans/profile-brief.md](docs/plans/profile-brief.md) | Not started | Decide the component, interface, and function stereotypes, recording each in `docs/decisions/` |
+| Spike 1 | [zwelz3/weft#2](https://github.com/zwelz3/weft/issues/2) | Not started | Run against a public model from SysML-v2-Release at the pinned commit. Step 4 uses the five queries in [queries/](queries/). The deliverable is [docs/graph-contract.md](docs/graph-contract.md), now a skeleton |
+| Profile | [docs/plans/profile-brief.md](docs/plans/profile-brief.md) | Stereotype decisions 0005 to 0007 accepted 2026-10-08; the brief's rows are filled | Start the requirement stereotype |
+| Report to sysml-toolkit maintainers | [docs/outreach/sysml-toolkit-rename-stable-identity.md](docs/outreach/sysml-toolkit-rename-stable-identity.md) | Drafted, not filed | The maintainer files it on Open-MBEE/sysml-toolkit before any sidecar-map code is written (OQ2) |
 | Report to Flexo maintainers | [docs/outreach/flexo-sysmlv2-rdf.md](docs/outreach/flexo-sysmlv2-rdf.md) | Drafted and reviewed, not filed | The maintainer files it on Open-MBEE/flexo-mms-sysmlv2 |
-| holonic enhancements | [#51](https://github.com/zwelz3/holonic/issues/51), [#52](https://github.com/zwelz3/holonic/issues/52), [#53](https://github.com/zwelz3/holonic/issues/53) | #30 and #50 merged to holonic `main` in [zwelz3/holonic#54](https://github.com/zwelz3/holonic/pull/54), with two defects found during that work fixed in [zwelz3/holonic#56](https://github.com/zwelz3/holonic/pull/56); not yet released | Until holonic 0.9.0 is released, Weft's spike depends on holonic `main`. #52 after spike step 7, which supplies its two-version fixture. #51 and #53 deferred: the adopter needs no cross-source identity yet, and Kotar works against git rather than Flexo |
+| holonic enhancements | [#51](https://github.com/zwelz3/holonic/issues/51), [#52](https://github.com/zwelz3/holonic/issues/52), [#53](https://github.com/zwelz3/holonic/issues/53) | #30 and #50 merged to holonic `main` in [zwelz3/holonic#54](https://github.com/zwelz3/holonic/pull/54), with two defects found during that work fixed in [zwelz3/holonic#56](https://github.com/zwelz3/holonic/pull/56); not yet released | Until holonic 0.9.0 is released, Weft pins holonic `main` at `25d1c84` (decision 0003), the merge of #54; #56 landed after that pin. #52 after spike step 7, which supplies its two-version fixture. #51 and #53 deferred: the adopter needs no cross-source identity yet, and Kotar works against git rather than Flexo |
 
 The design questions behind this work are in [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) (OQ1 to OQ13).
 
@@ -32,10 +42,10 @@ The design questions behind this work are in [docs/OPEN-QUESTIONS.md](docs/OPEN-
 
 | Project | Version | How it was reviewed |
 |---|---|---|
-| [sysml-toolkit](https://github.com/Open-MBEE/sysml-toolkit) | 0.10.2 | First from a source archive of `main` with no commit hash recorded, then from a clone at `821221767c3c56cb1ebe7da22666197a47c9c645`, built with Rust 1.97 and run against SysML-v2-Release `de1070ae8e79c21532b8004fc663d47b35d0e9fa` (fetched with `git submodule update --init spec-refs/SysML-v2-Release`). The probe's results are in [docs/plans/adopter-capabilities.md](docs/plans/adopter-capabilities.md). |
+| [sysml-toolkit](https://github.com/Open-MBEE/sysml-toolkit) | 0.10.2, pinned at `821221767c3c56cb1ebe7da22666197a47c9c645` with SysML-v2-Release at `de1070ae8e79c21532b8004fc663d47b35d0e9fa` (decision 0002) | First from a source archive of `main` with no commit hash recorded, then from a clone at `821221767c3c56cb1ebe7da22666197a47c9c645`, built with Rust 1.97 and run against SysML-v2-Release `de1070ae8e79c21532b8004fc663d47b35d0e9fa` (fetched with `git submodule update --init spec-refs/SysML-v2-Release`). The probe's results are in [docs/plans/adopter-capabilities.md](docs/plans/adopter-capabilities.md). |
 | [flexo-mms-sysmlv2](https://github.com/Open-MBEE/flexo-mms-sysmlv2) | Commit `61d1c9da77e1f0eebd4734290b8bb04fb04162f0` | Clone |
-| [holonic](https://github.com/zwelz3/holonic) | `main` at commit `d8d1758`, after the 0.8.0 release | Clone and source archive |
-| [OpenSysML](https://github.com/Open-MBEE/OpenSysML) | Documentation only | README on pkg.go.dev; opensysml.org was unreachable from the session that reviewed it |
+| [holonic](https://github.com/zwelz3/holonic) | `main`, reviewed at `d8d1758752827c35fc6781e89e01557b6e5e1825` after the 0.8.0 release; pinned at `25d1c841936ff96ab0adbb644e076939f44829dd`, the merge of #54 (decision 0003) | Clone and source archive |
+| [OpenSysML](https://github.com/Open-MBEE/OpenSysML) | Documentation only; `main` was at `a5bd7eb7d8462ff1308cfab7b1046f58245e3d53` on 2026-10-08 | README on pkg.go.dev, which is not tied to a commit; opensysml.org was unreachable from the session that reviewed it |
 
 ## Findings that are easy to rediscover
 
@@ -46,4 +56,4 @@ The design questions behind this work are in [docs/OPEN-QUESTIONS.md](docs/OPEN-
 
 ## Working conventions
 
-Pushes go directly to `main` while the project is in design. Commits are authored by the maintainer, and agents add no AI attribution to commits or to pull request bodies (AGENTS.md rule 11). Documents are drafted with the `better-language-skill` skill.
+The maintainer pushes directly to `main` while the project is in design; contributions arrive as pull requests on this repository, stacked when one depends on another. Commits are authored by the maintainer, and agents add no AI attribution to commits or to pull request bodies (AGENTS.md rule 11). Documents are drafted with the `better-language-skill` skill.
