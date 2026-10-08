@@ -19,9 +19,9 @@ Design, with a package skeleton. The repository holds decision records, open que
 
 | Decision | Content |
 |---|---|
-| [0005](docs/decisions/0005-component-stereotype.md) | Component is a role. A required `bearer` feature records whether a material artifact bears it or an information content entity's concretization does. |
-| [0006](docs/decisions/0006-interface-stereotype.md) | Interface applies to `interface def` and `port def` only, as a directive information content entity. Realized connections are instance data. |
-| [0007](docs/decisions/0007-action-definition-stereotype.md) | The `action def` stereotype is named Process and aligns to BFO process, because CCO's Function is a disposition. |
+| [0005](docs/decisions/0005-component-stereotype.md) | Component is a role. A required, open `bearer` list records whether a material artifact bears it, an information content entity's concretization does, or a project-declared kind does. Accepted 2026-10-08. |
+| [0006](docs/decisions/0006-interface-stereotype.md) | Interface applies to definitions and usages. Without `individual` they are specifications (directive information content entity). With `individual` they are realized connections (material entity) linked to the specification they specialize. Accepted 2026-10-08. |
+| [0007](docs/decisions/0007-action-definition-stereotype.md) | The `action def` stereotype is named Process and aligns to BFO process, because CCO's Function is a disposition. Accepted 2026-10-08. |
 
 ## Open work
 
@@ -31,7 +31,7 @@ Design, with a package skeleton. The repository holds decision records, open que
 | Buildability review | [docs/reviews/2026-10-08-buildability.md](docs/reviews/2026-10-08-buildability.md) Items 1 to 5 and 7 closed in [zwelz3/weft#7](https://github.com/zwelz3/weft/pull/7): license, pins, package and CI, decisions 0005 to 0007, thread queries, and the upstream issue draft | Apache-2.0 is adopted (2026-10-08). Item 6 is spike 1, filed as [zwelz3/weft#8](https://github.com/zwelz3/weft/pull/8). Item 8's offline check is `tests/test_status.py`; the check against live issue state is not written |
 | Data for the spike | [zwelz3/weft#1](https://github.com/zwelz3/weft/issues/1) | Requested | The maintainer supplies a component, an instance table, trace data, and an adapter ontology excerpt |
 | Spike 1 | [zwelz3/weft#2](https://github.com/zwelz3/weft/issues/2) | Not started | Run against a public model from SysML-v2-Release at the pinned commit. Step 4 uses the five queries in [queries/](queries/). The deliverable is [docs/graph-contract.md](docs/graph-contract.md), now a skeleton |
-| Profile | [docs/plans/profile-brief.md](docs/plans/profile-brief.md) | Stereotype decisions proposed in 0005 to 0007 | The maintainer accepts or revises 0005 to 0007. Then rename the Function row in the brief to Process and start the requirement stereotype |
+| Profile | [docs/plans/profile-brief.md](docs/plans/profile-brief.md) | Stereotype decisions 0005 to 0007 accepted 2026-10-08; the brief's rows are filled | Start the requirement stereotype |
 | Report to sysml-toolkit maintainers | [docs/outreach/sysml-toolkit-rename-stable-identity.md](docs/outreach/sysml-toolkit-rename-stable-identity.md) | Drafted, not filed | The maintainer files it on Open-MBEE/sysml-toolkit before any sidecar-map code is written (OQ2) |
 | Report to Flexo maintainers | [docs/outreach/flexo-sysmlv2-rdf.md](docs/outreach/flexo-sysmlv2-rdf.md) | Drafted and reviewed, not filed | The maintainer files it on Open-MBEE/flexo-mms-sysmlv2 |
 | holonic enhancements | [#51](https://github.com/zwelz3/holonic/issues/51), [#52](https://github.com/zwelz3/holonic/issues/52), [#53](https://github.com/zwelz3/holonic/issues/53) | #30 and #50 merged to holonic `main` in [zwelz3/holonic#54](https://github.com/zwelz3/holonic/pull/54), with two defects found during that work fixed in [zwelz3/holonic#56](https://github.com/zwelz3/holonic/pull/56); not yet released | Until holonic 0.9.0 is released, Weft pins holonic `main` at `25d1c84` (decision 0003), the merge of #54; #56 landed after that pin. #52 after spike step 7, which supplies its two-version fixture. #51 and #53 deferred: the adopter needs no cross-source identity yet, and Kotar works against git rather than Flexo |

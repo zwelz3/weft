@@ -1,6 +1,6 @@
 # 0007. Process as the stereotype for action definitions
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-10-08
 
 ## Context
@@ -23,7 +23,7 @@ An element carrying the stereotype requires a declared short name (OQ2).
 
 The exported class has one BFO category, and the profile documentation states that its instances are performances of the action.
 
-The profile brief's minimum stereotype table lists the row as Function. That row is renamed when this decision is accepted.
+The profile brief's minimum stereotype table names the row Process.
 
 The alignment file can state a more specific CCO class, such as an act class for processes with an agent, in a later revision without renaming the stereotype.
 
