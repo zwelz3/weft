@@ -5,8 +5,13 @@ this spike has one version of one model, so it gets one holon per graph
 kind (normative, projection) rather than one holon per version.
 
 Usage: python3 load_holons.py <normative.ttl> <projection.ttl> <shapes.ttl> <out-report.md>
+                              [--backend rdflib|fuseki] [--fuseki-url URL] [--fuseki-dataset NAME]
+
+The rdflib backend (default) is in-memory and needs nothing running. The
+Fuseki backend talks to a already-running, disposable Fuseki dataset; see
+BACKENDS.md for how spike 2 starts and stops one.
 """
-import sys
+import argparse
 
 import holonic
 
@@ -14,10 +19,33 @@ NORMATIVE_HOLON = "https://weft.ghostsystems.ai/spike1/holon/normative-pump-syst
 PROJECTION_HOLON = "https://weft.ghostsystems.ai/spike1/holon/projection-pump-system"
 
 
-def main():
-    normative_ttl, projection_ttl, shapes_ttl, report_path = sys.argv[1:5]
+def build_backend(args):
+    if args.backend == "rdflib":
+        return None  # HolonicDataset default
+    from holonic.backends.fuseki_backend import FusekiBackend
 
-    ds = holonic.HolonicDataset()  # default RdflibBackend, in-memory
+    return FusekiBackend(args.fuseki_url, dataset=args.fuseki_dataset)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("normative_ttl")
+    parser.add_argument("projection_ttl")
+    parser.add_argument("shapes_ttl")
+    parser.add_argument("report_path")
+    parser.add_argument("--backend", choices=["rdflib", "fuseki"], default="rdflib")
+    parser.add_argument("--fuseki-url", default="http://127.0.0.1:3030")
+    parser.add_argument("--fuseki-dataset", default="ds")
+    args = parser.parse_args()
+
+    normative_ttl, projection_ttl, shapes_ttl, report_path = (
+        args.normative_ttl,
+        args.projection_ttl,
+        args.shapes_ttl,
+        args.report_path,
+    )
+
+    ds = holonic.HolonicDataset(build_backend(args))
 
     ds.add_holon(NORMATIVE_HOLON, "Pump system, normative graph", holon_type="cga:DataHolon")
     ds.add_interior(NORMATIVE_HOLON, open(normative_ttl).read())
@@ -30,7 +58,7 @@ def main():
     projection_result = ds.validate_membrane(PROJECTION_HOLON)
 
     lines = [
-        "# Step 7 holon load, rdflib backend\n",
+        f"# Step 7 holon load, {args.backend} backend\n",
         f"Normative holon `{NORMATIVE_HOLON}`: membrane conforms = {normative_result.conforms}\n",
         f"Projection holon `{PROJECTION_HOLON}`: membrane conforms = {projection_result.conforms}\n",
         "## Normative holon membrane result\n",

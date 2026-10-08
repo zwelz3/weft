@@ -4,9 +4,32 @@ in the same breath as a shape that actually fired. This guards the finding
 BACKENDS.md records (the normative holon's True conforms is vacuous).
 Run directly: cd spike/holons && python3 -m pytest test_load_holons.py
 """
+import socket
+
+import pytest
+
 import holonic
 
 NS = "https://weft.ghostsystems.ai/spike1/holons-test/"
+FUSEKI_HOST, FUSEKI_PORT = "127.0.0.1", 57027
+
+
+def _fuseki_reachable():
+    try:
+        with socket.create_connection((FUSEKI_HOST, FUSEKI_PORT), timeout=1):
+            return True
+    except OSError:
+        return False
+
+
+requires_fuseki = pytest.mark.skipif(
+    not _fuseki_reachable(),
+    reason=(
+        "no disposable Fuseki reachable at "
+        f"{FUSEKI_HOST}:{FUSEKI_PORT} (see BACKENDS.md for how spike 2 starts one); "
+        "the rdflib tests above still run offline (AGENTS.md rule 1, rule 9)"
+    ),
+)
 
 
 def test_vacuous_boundary_conforms_but_fires_no_shape():
@@ -47,3 +70,31 @@ def test_matching_boundary_actually_catches_a_missing_required_property():
     result = ds.validate_membrane(holon)
     assert result.conforms is False
     assert len(result.violations) >= 1
+
+
+@requires_fuseki
+def test_fuseki_backend_matches_rdflib_on_the_same_vacuous_boundary_case():
+    """Regression fence for spike 2 step 1: the Fuseki backend must reach the
+    same (vacuous) conforms verdict as rdflib on the exact case above, so a
+    future change to FusekiBackend that silently drops the boundary graph (and
+    so always conforms) is caught the same way the rdflib test catches it.
+    """
+    from holonic.backends.fuseki_backend import FusekiBackend
+
+    backend = FusekiBackend(f"http://{FUSEKI_HOST}:{FUSEKI_PORT}", dataset="ds")
+    ds = holonic.HolonicDataset(backend)
+    holon = NS + "holon/fuseki-empty-target"
+    ds.add_holon(holon, "test holon")
+    ds.add_interior(holon, f"<{NS}instance/thing> a <{NS}class/Unrelated> .")
+    ds.add_boundary(
+        holon,
+        f"""
+        @prefix sh: <http://www.w3.org/ns/shacl#> .
+        <{NS}shape/Thing> a sh:NodeShape ;
+            sh:targetClass <{NS}class/Thing> ;
+            sh:property [ sh:path <{NS}property/required> ; sh:minCount 1 ] .
+        """,
+    )
+    result = ds.validate_membrane(holon)
+    assert result.conforms is True
+    assert result.violations == []

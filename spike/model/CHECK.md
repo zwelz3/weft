@@ -34,6 +34,14 @@ A pump system with
 - 1 verification case (`PumpSystemAcceptance` def, `pumpSystemAcceptanceTest` usage) with a
   `verify` relationship for each of the two requirements it covers (`MaxPressure`, `ResponseTime`).
 
+Spike 2 step 2 brought `profile.sysml` in line with decisions 0005 to 0007's accepted textual
+forms (an open `attribute def BearerKind` instead of the enum, `Interface` applying to usages and
+`individual` defs, not definitions only) and added one element per new case to the pump model:
+`EmbeddedController` (a two-valued `bearer = (material, information)`), `ThirdPartyModule` (bearer
+value `thirdPartyBinary`, declared in `PumpLibrary` rather than the profile), and
+`ControllerSensorLink` (an `individual interface def` specializing `DataLink`) with its usage
+`controllerSensorLink`. `check --strict --lib` (command below) still passes after the addition.
+
 Step 4 added declared short names to the five component usages (`CMP-SYS`, `CMP-PUMP`, `CMP-CTRL`,
 `CMP-SENS`, `CMP-ENCL`): decision 0005 requires a short name on an element carrying the Component
 stereotype, and the orphan-components query needs one to report. `check --strict` still passes

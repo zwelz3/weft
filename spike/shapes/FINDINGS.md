@@ -217,3 +217,28 @@ Constraint Violation in MinCountConstraintComponent (http://www.w3.org/ns/shacl#
 	Message: Less than 1 values on <https://weft.ghostsystems.ai/spike1/pump-library/instance/PUMP-06>-><https://weft.ghostsystems.ai/spike1/pump-library/property/Pump_powerPort>
 
 ```
+
+## Spike 2 step 2: a shape set that targets the toolkit's own class names
+
+The gap above is closed by `spike/shapes/normative-shapes.ttl`: `sh:targetClass` values are
+`sysml:MetadataUsage`, `sysml:AttributeUsage`, and `sysml:InterfaceDefinition` (the toolkit's own
+metaclasses, as they appear in `spike/normative/output/pump-system.ttl`), not the step 5 OWL export
+classes. `spike/shapes/test_shacl_export.py` asserts each shape has at least one focus node on the
+real pump-system normative graph and that a deliberately malformed node triggers a Violation,
+closing the non-vacuity gap this file first recorded.
+
+The toolkit stores a metadata feature's assigned value (`@Component { bearer = material; }`) behind
+a FeatureValue expression tree, not a direct triple from the MetadataUsage to the value: a single
+value sits behind a `FeatureReferenceExpression`'s `tk:referent`, and a parenthesized multi-value
+list (`bearer = (material, information)`) adds an `OperatorExpression` with `tk:argument` branches
+above that. `ComponentBearerMinCountShape`'s property path, `(tk:member|tk:argument)*/tk:referent`,
+walks either shape to the assigned `AttributeUsage`. A derivation that flattens this into a single
+triple (as the real Weft derivation eventually must, for the same reason `docs/graph-contract.md`
+flattens other toolkit-AST shapes) would not need this path; this spike validates the raw toolkit
+graph directly, per the brief, so the shape carries the walk instead.
+
+decision 0006's alignment property (an individual interface def's specialization of the
+specification it realizes) is already an object property in the raw toolkit graph:
+`Subclassification`'s `tk:general` is an IRI, not a literal (AGENTS.md rule 5 holds here with no
+extra derivation work), so `IndividualInterfaceLinkedToSpecificationShape` only has to assert the
+link resolves to another `InterfaceDefinition`.

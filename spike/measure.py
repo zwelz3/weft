@@ -137,21 +137,176 @@ def m3(toolkit, lib, out_dir):
     }
 
 
+def _count_path_steps(path):
+    # rdflib represents a property path with >1 step as a Path object
+    # (SequencePath, AlternativePath, MulPath, ...); a plain URIRef predicate
+    # has none. Recurses through the path's sub-paths so `(a|b)*/c` counts
+    # a, b, and c as three steps.
+    from rdflib.paths import AlternativePath, InvPath, MulPath, NegatedPath, Path, SequencePath
+
+    if not isinstance(path, Path):
+        return 0
+    if isinstance(path, (SequencePath, AlternativePath)):
+        return sum(_count_path_steps(a) if isinstance(a, Path) else 1 for a in path.args)
+    if isinstance(path, MulPath):
+        inner = _count_path_steps(path.path) if isinstance(path.path, Path) else 1
+        return max(inner, 1)
+    if isinstance(path, (InvPath, NegatedPath)):
+        return 1
+    return 1
+
+
+def _count_triples_and_paths(algebra_node):
+    # Walks a prepared query's algebra tree (BGP / TriplesBlock, and their
+    # usual wrapping nodes: Filter, Project, OrderBy, Builtin_NOTEXISTS, ...)
+    # and totals triple patterns and property-path steps across the whole
+    # query, including inside FILTER NOT EXISTS sub-patterns.
+    from rdflib.plugins.sparql.sparql import QueryContext  # noqa: F401 (import for parity, unused)
+
+    triples = 0
+    path_steps = 0
+    seen = set()
+
+    def walk(node):
+        nonlocal triples, path_steps
+        if isinstance(node, dict):
+            if id(node) in seen:
+                return
+            seen.add(id(node))
+            node_triples = node.get("triples")
+            if node_triples is not None:
+                for t in node_triples:
+                    # BGP: each entry is one (s, p, o) tuple. TriplesBlock
+                    # (inside FILTER NOT EXISTS, among others): each entry is
+                    # a flat list of several triples' terms concatenated, in
+                    # groups of 3.
+                    if len(t) == 3 and not isinstance(t[0], (list, tuple)):
+                        groups = [t]
+                    else:
+                        groups = [t[i : i + 3] for i in range(0, len(t), 3) if i + 3 <= len(t)]
+                    for group in groups:
+                        s, p, o = group
+                        triples += 1
+                        path_steps += _count_path_steps(p)
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, (list, tuple, set)):
+            for v in node:
+                walk(v)
+
+    walk(algebra_node)
+    return triples, path_steps
+
+
+def _query_stats(rq_path, graph):
+    import time
+
+    from rdflib.plugins.sparql import prepareQuery
+
+    text = rq_path.read_text()
+    lines = sum(1 for l in text.splitlines() if l.strip() and not l.strip().startswith("#"))
+    pq = prepareQuery(text)
+    triples, path_steps = _count_triples_and_paths(pq.algebra)
+    start = time.perf_counter()
+    result = list(graph.query(pq))
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    return {
+        "lines": lines,
+        "triple_patterns": triples,
+        "property_path_steps": path_steps,
+        "run_time_ms": round(elapsed_ms, 3),
+        "rows": len(result),
+    }, result
+
+
 def m5(out_dir):
     import rdflib
+
+    sys.path.insert(0, str(REPO / "spike" / "projection"))
+    from project import VERIFY_LINE  # the verdict regex project.py's attach_verdicts uses
 
     normative = rdflib.Graph()
     normative.parse(REPO / "spike/normative/output/pump-system.ttl", format="turtle")
     projection = rdflib.Graph()
     projection.parse(REPO / "spike/projection/output.ttl", format="turtle")
 
+    full_dir = REPO / "spike/projection/full-graph-queries"
+    verify_text = (REPO / "spike/projection/verify-report.txt").read_text()
+
     rows = []
     for rq in sorted((REPO / "queries").glob("*.rq")):
-        text = rq.read_text()
-        proj_patterns = text.count(".") + text.count(";")  # rough proxy, replaced below
-        proj_result = list(projection.query(text))
-        rows.append({"query": rq.name, "projection_rows": len(proj_result)})
+        proj_stats, proj_result = _query_stats(rq, projection)
+        full_rq = full_dir / rq.name
+        full_stats, full_result = _query_stats(full_rq, normative)
+
+        proj_rows = {tuple(str(v) for v in row) for row in proj_result}
+        if rq.name == "requirement-satisfied-by.rq":
+            # proj:verdict is not a graph property (project.py's
+            # attach_verdicts adds it by matching `sysmlv2 verify`'s text
+            # output to a claim); apply the same text match here before
+            # comparing, so the equality check covers all four columns,
+            # not just the three the full graph resolves by itself.
+            full_rows_with_verdict = set()
+            for row in full_result:
+                req_name = normative.value(row.requirement, rdflib.URIRef("https://weft.ghostsystems.ai/spike1/toolkit-vocab#declaredName"))
+                verdict = ""
+                for line in verify_text.splitlines():
+                    m = VERIFY_LINE.search(line)
+                    if m and m.group("req") == str(req_name):
+                        verdict = m.group("verdict").lower()
+                        break
+                full_rows_with_verdict.add((str(row.requirement), str(row.shortName), str(row.element), verdict))
+            full_rows = full_rows_with_verdict
+        else:
+            full_rows = {tuple(str(v) for v in row) for row in full_result}
+
+        rows.append(
+            {
+                "query": rq.name,
+                "projection": proj_stats,
+                "full_graph": full_stats,
+                "results_equal": proj_rows == full_rows,
+            }
+        )
+        out_path = out_dir / f"m5-{rq.stem}-full-graph-results.txt"
+        out_path.write_text("\n".join(sorted(" | ".join(r) for r in full_rows)) + "\n")
+
+    report_lines = ["# Spike 2 step 3: M5 against the full normative graph\n"]
+    for row in rows:
+        p, f = row["projection"], row["full_graph"]
+        report_lines.append(f"## {row['query']}\n")
+        report_lines.append(f"Results equal to the projected query: {row['results_equal']}\n")
+        report_lines.append("| | lines | triple patterns | property-path steps | run time (ms) | rows |")
+        report_lines.append("|---|---|---|---|---|---|")
+        report_lines.append(
+            f"| projection | {p['lines']} | {p['triple_patterns']} | {p['property_path_steps']} | {p['run_time_ms']} | {p['rows']} |"
+        )
+        report_lines.append(
+            f"| full graph | {f['lines']} | {f['triple_patterns']} | {f['property_path_steps']} | {f['run_time_ms']} | {f['rows']} |\n"
+        )
+    results_md = REPO / "spike/projection/results.md"
+    marker = "# Spike 2 step 3: M5 against the full normative graph"
+    existing = results_md.read_text()
+    base, _, _ = existing.partition(marker)
+    results_md.write_text(base.rstrip() + "\n\n" + "\n".join(report_lines))
     return rows
+
+
+def scheme3_capability_probe():
+    # Step 4: M1/M2 for id scheme 3 need Session.from_sources_with_graph_format
+    # or an equivalent Python-reachable selector; sysmlv2-py 0.10.2 wraps only
+    # from_sources() (scheme 2, IDS.md's GraphFormat::LegacyV2 default). This
+    # does not run M1/M2 for scheme 3; it records why not. See
+    # spike/ids/probe_scheme3.py for the full inspection and
+    # spike/ids/test_probe_scheme3.py for the regression fence.
+    try:
+        import sysmlv2
+    except ImportError:
+        return {"bindings_importable": False}
+    return {
+        "bindings_importable": True,
+        "has_graph_format_selector": hasattr(sysmlv2.Session, "from_sources_with_graph_format"),
+    }
 
 
 def main():
@@ -162,6 +317,7 @@ def main():
     print("## M2\n", m2(toolkit, lib, out_dir))
     print("## M3\n", m3(toolkit, lib, out_dir))
     print("## M5\n", m5(out_dir))
+    print("## Scheme 3 capability probe\n", scheme3_capability_probe())
 
 
 if __name__ == "__main__":
