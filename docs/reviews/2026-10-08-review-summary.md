@@ -1,6 +1,6 @@
 # Review summary, 2026-10-08
 
-Companion to [2026-10-08-buildability.md](2026-10-08-buildability.md). That document holds the full review. This one records what was found, what each of the two pull requests changes, and the spike that follows them. The results sections are placeholders until the spike runs.
+Companion to [2026-10-08-buildability.md](2026-10-08-buildability.md). That document holds the full review. This one records what was found, what each of the two pull requests changes, and the spike that follows them. The results table in section 4 is filled by MR2.
 
 ## 1. Findings
 
@@ -12,7 +12,7 @@ The decisions are settled and consistent, the profile brief is close to buildabl
 | Reproducible environment | No `pyproject.toml`, no `src/` layout, no CI workflow. Decision 0004 commits to Linux and Windows CI across Python versions. | Decision 0004 is not implementable. The toolkit bindings are a Rust extension and need a wheel built once per pinned commit. |
 | Stereotype decisions | The profile brief defers Component, Interface, and the action-definition stereotype. | The profile cannot be written. |
 
-Secondary findings, each with its fix in MR1 or MR2:
+Secondary findings, each with its fix in MR1:
 
 - sysml-toolkit's `IDS.md` lists stable identity across renames as backlog. A sidecar map in Weft is premature until an upstream issue is filed. Decision 0002 should state which id scheme Weft consumes.
 - holonic issues #30 and #50 are closed and PR #54 is merged, but the latest release is still v0.8.0. Issue #2 pins 0.8.0, which lacks the fixes spike step 6 depends on. holonic `main` must be pinned by hash until 0.9.0.
@@ -24,9 +24,11 @@ Secondary findings, each with its fix in MR1 or MR2:
 - STATUS.md was stale on holonic the day it was written, and nothing enforces the update rule.
 - Rule 3 said "because the version is pre-1.0" where "even though" was meant.
 
-## 2. MR1: document fixes
+## 2. MR1: findings and small fixes
 
-Branch `review/buildability-2026-10-08`, filed as [zwelz3/weft#4](https://github.com/zwelz3/weft/pull/4) against the adopter branch. Two commits, authored without AI attribution.
+Branch `review/buildability-2026-10-08`, filed as [zwelz3/weft#7](https://github.com/zwelz3/weft/pull/7) on top of the adopter branch ([zwelz3/weft#3](https://github.com/zwelz3/weft/pull/3)). Thirteen commits, authored without AI attribution: three for the review and the document fixes, one per gap closed, one adopting the license, and this record. An earlier filing split the same commits across two fork pull requests; those are closed in favor of this one.
+
+### Document fixes
 
 | File | Change |
 |---|---|
@@ -41,9 +43,9 @@ Branch `review/buildability-2026-10-08`, filed as [zwelz3/weft#4](https://github
 | `docs/OPEN-QUESTIONS.md` | OQ6's reference to holonic's OQ11 is prefixed to distinguish it from Weft's OQ11. |
 | `STATUS.md` | The review listed as open work, with items 1 to 5 of its ordered list named as one gap-closing pull request. |
 
-## 3. MR2: closing the gaps
+### Gap closures
 
-Branch `gaps/buildability-2026-10-08`, based on MR1. One commit per item, in the order the review gives. All eight items have landed. The branch is filed as [zwelz3/weft#5](https://github.com/zwelz3/weft/pull/5) on top of MR1.
+One commit per item, in the order the review gives. All eight items have landed.
 
 | Item | Change | State |
 |---|---|---|
@@ -56,6 +58,10 @@ Branch `gaps/buildability-2026-10-08`, based on MR1. One commit per item, in the
 | 7. Upstream issue draft | `docs/outreach/sysml-toolkit-rename-stable-identity.md`, an issue text for Open-MBEE/sysml-toolkit citing the IDS.md backlog entry. The maintainer files it. | Landed |
 | 8. STATUS.md | Phase, open work, and versions reflect the above. | Landed |
 
+## 3. MR2: spike 1 results
+
+Branch `spike/1-graph-contract`, filed as [zwelz3/weft#8](https://github.com/zwelz3/weft/pull/8) on top of MR1. One commit per spike step, one for the measurements and the revised open questions, and one for the record. Its deliverables are `docs/graph-contract.md` filled to a first draft, `spike/RESULTS.md`, and the results table in section 4. The spike directory is disposable; a decision record adopts anything that survives.
+
 ## 4. Proposed spike
 
 Issue #2 defines spike 1. This section restates it as a test plan with the changes the review requires, and reserves space for results. The spike is disposable. Its deliverable is `docs/graph-contract.md` filled in, revised open questions, and the measurements below.
@@ -65,7 +71,7 @@ Issue #2 defines spike 1. This section restates it as a test plan with the chang
 - Pin holonic `main` at `d8d1758`, not 0.8.0. Step 6 depends on the fixes in #30 and #50.
 - Name the graph contract as the primary deliverable.
 - Use a public model from SysML-v2-Release at commit `de1070a` for steps 1 to 5, so the spike starts before the adopter's component arrives. Steps 6 and 7 wait on the real component, instance table, and tickets from issue #1.
-- Take the five thread queries in step 4 from `queries/` (MR2 item 5), not from scratch.
+- Take the five thread queries in step 4 from `queries/` (MR1 item 5), not from scratch.
 
 ### Steps
 
@@ -92,7 +98,7 @@ Issue #2 defines spike 1. This section restates it as a test plan with the chang
 
 ### Decision rule
 
-If M1 shows acceptable churn, Weft needs only a thin sidecar map and the profile and thread queries follow. If M1 shows unacceptable churn, the upstream issue in MR2 item 7 is filed and becomes a blocker for identity but not for the profile, which does not depend on it.
+If M1 shows acceptable churn, Weft needs only a thin sidecar map and the profile and thread queries follow. If M1 shows unacceptable churn, the upstream issue in MR1 item 7 is filed and becomes a blocker for identity but not for the profile, which does not depend on it.
 
 ### Results
 

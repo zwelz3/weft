@@ -28,7 +28,7 @@ Design, with a package skeleton. The repository holds decision records, open que
 | Item | Location | State | Next action |
 |---|---|---|---|
 | Adopter capabilities | [docs/plans/adopter-capabilities.md](docs/plans/adopter-capabilities.md) | Drafted; four of five questions answered | Verify the three Kotar points under OQ11 with a model edited in Kotar. Decide in the profile work whether a user story is a use case or a requirement with a stakeholder |
-| Buildability review | [docs/reviews/2026-10-08-buildability.md](docs/reviews/2026-10-08-buildability.md) Items 1 to 5 and 7 closed on branch `gaps/buildability-2026-10-08`: license, pins, package and CI, decisions 0005 to 0007, thread queries, and the upstream issue draft | Apache-2.0 is adopted (2026-10-08). Item 6 is spike 1, in progress on branch `spike/1-graph-contract`. Item 8's offline check is `tests/test_status.py`; the check against live issue state is not written |
+| Buildability review | [docs/reviews/2026-10-08-buildability.md](docs/reviews/2026-10-08-buildability.md) Items 1 to 5 and 7 closed in [zwelz3/weft#7](https://github.com/zwelz3/weft/pull/7): license, pins, package and CI, decisions 0005 to 0007, thread queries, and the upstream issue draft | Apache-2.0 is adopted (2026-10-08). Item 6 is spike 1, filed as [zwelz3/weft#8](https://github.com/zwelz3/weft/pull/8). Item 8's offline check is `tests/test_status.py`; the check against live issue state is not written |
 | Data for the spike | [zwelz3/weft#1](https://github.com/zwelz3/weft/issues/1) | Requested | The maintainer supplies a component, an instance table, trace data, and an adapter ontology excerpt |
 | Spike 1 | [zwelz3/weft#2](https://github.com/zwelz3/weft/issues/2) | Not started | Run against a public model from SysML-v2-Release at the pinned commit. Step 4 uses the five queries in [queries/](queries/). The deliverable is [docs/graph-contract.md](docs/graph-contract.md), now a skeleton |
 | Profile | [docs/plans/profile-brief.md](docs/plans/profile-brief.md) | Stereotype decisions proposed in 0005 to 0007 | The maintainer accepts or revises 0005 to 0007. Then rename the Function row in the brief to Process and start the requirement stereotype |
@@ -56,4 +56,4 @@ The design questions behind this work are in [docs/OPEN-QUESTIONS.md](docs/OPEN-
 
 ## Working conventions
 
-Pushes go directly to `main` while the project is in design. Commits are authored by the maintainer, and agents add no AI attribution to commits or to pull request bodies (AGENTS.md rule 11). Documents are drafted with the `better-language-skill` skill.
+The maintainer pushes directly to `main` while the project is in design; contributions arrive as pull requests on this repository, stacked when one depends on another. Commits are authored by the maintainer, and agents add no AI attribution to commits or to pull request bodies (AGENTS.md rule 11). Documents are drafted with the `better-language-skill` skill.
