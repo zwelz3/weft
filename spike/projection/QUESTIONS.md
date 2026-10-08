@@ -1,6 +1,6 @@
 # Step 4 questions, in plain language
 
-The five thread queries in [queries/](../../queries/) (MR2 item 5, taken from the traceability
+The five thread queries in [queries/](../../queries/) (MR1 item 5, taken from the traceability
 matrix and gap analysis in `docs/plans/adopter-capabilities.md`), restated without SPARQL syntax.
 
 1. **Which elements satisfy each requirement, and what is each claim's verdict?** For every

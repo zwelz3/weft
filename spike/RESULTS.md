@@ -116,6 +116,6 @@ produce zero churn, rename and move touch only the element's own subtree, and on
 tool-performed structural rewrite (extract) produces a large delta, on an element the thread would
 not ordinarily link to mid-rewrite. Weft needs a thin sidecar map (decision 0001's tier-1 mirror
 path, OQ2's current leaning), not a response to unacceptable churn; the profile and thread queries
-follow without the upstream identity issue (MR2 item 7, the drafted `docs/outreach/...`-style
+follow without the upstream identity issue (MR1 item 7, the drafted `docs/outreach/...`-style
 report on sysml-toolkit) becoming a blocker. M2 narrows the mirror's collision risk to a path-naming
 discipline question rather than an open hazard.
