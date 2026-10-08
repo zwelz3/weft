@@ -4,7 +4,7 @@ State of the project as of 2026-10-08. The session that changes the project's st
 
 ## Phase
 
-Design. The repository holds decision records, open questions, a plan for the profile, and no code.
+Design. The repository holds decision records, open questions, plans for the profile and for the adopter's capabilities, and no code.
 
 ## Settled
 
@@ -19,19 +19,20 @@ Design. The repository holds decision records, open questions, a plan for the pr
 
 | Item | Location | State | Next action |
 |---|---|---|---|
+| Adopter capabilities | [docs/plans/adopter-capabilities.md](docs/plans/adopter-capabilities.md) | Drafted; four of five questions answered | Verify the three Kotar points under OQ11 with a model edited in Kotar. Decide in the profile work whether a user story is a use case or a requirement with a stakeholder |
 | Data for the spike | [zwelz3/weft#1](https://github.com/zwelz3/weft/issues/1) | Requested | The maintainer supplies a component, an instance table, trace data, and an adapter ontology excerpt |
-| Spike 1 | [zwelz3/weft#2](https://github.com/zwelz3/weft/issues/2) | Not started | Steps 1 to 5 and measurements M1 to M4 can start on a public example before #1 is answered |
+| Spike 1 | [zwelz3/weft#2](https://github.com/zwelz3/weft/issues/2) | Not started | Steps 1 to 5 and measurements M1 to M4 can start on a public example before #1 is answered. The adopter capabilities plan proposes taking the step 4 queries from the traceability matrix and gap analysis |
 | Profile | [docs/plans/profile-brief.md](docs/plans/profile-brief.md) | Not started | Decide the component, interface, and function stereotypes, recording each in `docs/decisions/` |
 | Report to Flexo maintainers | [docs/outreach/flexo-sysmlv2-rdf.md](docs/outreach/flexo-sysmlv2-rdf.md) | Drafted and reviewed, not filed | The maintainer files it on Open-MBEE/flexo-mms-sysmlv2 |
-| holonic enhancements | [#50](https://github.com/zwelz3/holonic/issues/50), [#51](https://github.com/zwelz3/holonic/issues/51), [#52](https://github.com/zwelz3/holonic/issues/52), [#53](https://github.com/zwelz3/holonic/issues/53) | Filed | #50 waits on [holonic#30](https://github.com/zwelz3/holonic/issues/30) |
+| holonic enhancements | [#51](https://github.com/zwelz3/holonic/issues/51), [#52](https://github.com/zwelz3/holonic/issues/52), [#53](https://github.com/zwelz3/holonic/issues/53) | #30 and #50 merged to holonic `main` in [zwelz3/holonic#54](https://github.com/zwelz3/holonic/pull/54), with two defects found during that work fixed in [zwelz3/holonic#56](https://github.com/zwelz3/holonic/pull/56); not yet released | Until holonic 0.9.0 is released, Weft's spike depends on holonic `main`. #52 after spike step 7, which supplies its two-version fixture. #51 and #53 deferred: the adopter needs no cross-source identity yet, and Kotar works against git rather than Flexo |
 
-The design questions behind this work are in [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) (OQ1 to OQ10).
+The design questions behind this work are in [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) (OQ1 to OQ13).
 
 ## Versions reviewed
 
 | Project | Version | How it was reviewed |
 |---|---|---|
-| [sysml-toolkit](https://github.com/Open-MBEE/sysml-toolkit) | 0.10.2 | From a source archive of `main`, with no commit hash recorded. The archive's `spec-refs/` submodules were empty, so the standard library has to be fetched separately before `--lib` can be used. |
+| [sysml-toolkit](https://github.com/Open-MBEE/sysml-toolkit) | 0.10.2 | First from a source archive of `main` with no commit hash recorded, then from a clone at `821221767c3c56cb1ebe7da22666197a47c9c645`, built with Rust 1.97 and run against SysML-v2-Release `de1070ae8e79c21532b8004fc663d47b35d0e9fa` (fetched with `git submodule update --init spec-refs/SysML-v2-Release`). The probe's results are in [docs/plans/adopter-capabilities.md](docs/plans/adopter-capabilities.md). |
 | [flexo-mms-sysmlv2](https://github.com/Open-MBEE/flexo-mms-sysmlv2) | Commit `61d1c9da77e1f0eebd4734290b8bb04fb04162f0` | Clone |
 | [holonic](https://github.com/zwelz3/holonic) | `main` at commit `d8d1758`, after the 0.8.0 release | Clone and source archive |
 | [OpenSysML](https://github.com/Open-MBEE/OpenSysML) | Documentation only | README on pkg.go.dev; opensysml.org was unreachable from the session that reviewed it |

@@ -47,7 +47,9 @@ Current leaning is a holon subtype that holds only identity assertions, each wit
 
 ## OQ6. Derived shapes for instance data
 
-SHACL shapes generated from definitions (`sh:datatype` and `sh:class` from typing, cardinality from multiplicity) would validate records in other systems against the model. A shape that targets a class reports conformance when no instance of that class is present, so records that arrive with the wrong type pass without a finding. This is open question OQ11 in holonic, and derived shapes depend on its resolution. holonic issue [#30](https://github.com/zwelz3/holonic/issues/30), in which unclassified validation results are dropped and `fail_on_breach` lets data through, also has to be fixed before boundaries enforce derived shapes.
+SHACL shapes generated from definitions (`sh:datatype` and `sh:class` from typing, cardinality from multiplicity) would validate records in other systems against the model. A shape that targets a class reports conformance when no instance of that class is present, so records that arrive with the wrong type pass without a finding. holonic resolved this (its OQ11) in [zwelz3/holonic#54](https://github.com/zwelz3/holonic/pull/54), together with [#30](https://github.com/zwelz3/holonic/issues/30), in which results with an unrecognized severity were dropped. Membrane validation now reports each typed node that no boundary shape targets: at Info by default, and as a violation for the nodes a `traverse(fail_on_breach=True)` injects. A holon's boundary can exempt a class with `cga:permitsType` or set the severity with `cga:untargetedTypeSeverity`.
+
+Open is which of those settings Weft's source holons use. A portal that carries instance records into a model holon with `fail_on_breach` rejects records whose types the derived shapes do not target, which is the intended behavior for mistyped rows; auxiliary nodes the adapter emits (measurement or provenance nodes, for example) then need shapes or `cga:permitsType` declarations. Spike 1 step 6 measures this (M6). The fixes are on holonic `main` and are not in a release; holonic 0.8.0 on PyPI does not have them.
 
 ## OQ7. Flexo's RDF representation
 
@@ -64,3 +66,33 @@ Tier 2 in decision 0001 depends on converting SysML v2 API JSON back to textual 
 ## OQ10. Projection vocabulary and adapter ontologies
 
 The digital thread has no central ontology. Each adapter (Excel, Teamwork Cloud, and others) maps its source into its own ontology, and linking across them is unfinished. The projection's terms (component, interface, requirement, decision, and the trace links between them) are therefore Weft's own vocabulary rather than an alignment to an existing one. Open is whether adapter ontologies align to the projection through holonic alignment holons, which makes the projection the hub for cross-source queries, or whether each pair of sources is aligned directly. The first needs one alignment per adapter; the second needs one per pair of adapters that must be queried together.
+
+## OQ11. Graphical editing and tier 2
+
+Decision 0001 places edits made in tools that write to Flexo (tier 2) out of plan, and the initial adopter needs graphical editing ([docs/plans/adopter-capabilities.md](plans/adopter-capabilities.md), C2). The adopter's editor is Starforge Kotar, whose public support repository describes a browser workspace that commits to GitLab through git smart-HTTP and shows, in a draft architecture diagram, a source-control component writing to a textual model repository with Flexo optional.
+
+Current leaning is that Kotar's graphical edits reach git as changes to textual notation, which makes graphical editing a tier 0 feature for this adopter and leaves tier 2 out of plan. The leaning rests on documentation, not on a model edited in Kotar. Three points remain to verify with a model edited graphically in Kotar:
+
+- whether an edit rewrites only the changed elements or regenerates the file, which decides the size of review diffs;
+- whether the output stays within the SysML v2 grammar that sysml-toolkit checks (decision 0002);
+- whether declared short names (OQ2) and metadata annotations, including Weft's trace metadata, survive an edit.
+
+A tool that keeps its own store and does not commit text would still need tier 2, so the question stays open for other adopters.
+
+## OQ12. Links from requirements to source passages
+
+Deferred. The initial adopter supplies requirement text in the prompt to the agent, and under AGENTS.md rule 2 the prompt is not a record, so a requirement's provenance is the commit that added it and the review that approved it.
+
+For an adopter whose requirements come from documents or from a requirements tool, a requirement needs a link to the passage it came from, and the profile brief's trace metadata has no feature for it. Three ranges are candidates, and each is a different graph contract:
+
+- a document IRI with a fragment identifier, emitted under `dct:source`;
+- a passage resource with its own IRI, linked by `prov:wasDerivedFrom`, carrying the document, its revision, and the location within it;
+- a link to an element in a requirements-tool export (ReqIF), when the source is a requirements tool rather than a document.
+
+The leaning, when the question is taken up, is the passage resource, because it records the document revision, so a later revision of the document can be compared with the requirements derived from the earlier one.
+
+## OQ13. Issue state in reports
+
+The profile brief stores issue keys in the model and resolves them to IRIs, which supports a traceability matrix that lists keys. Reports that use an issue's state (status, resolution, assignee) need data held in Jira or GitLab. Decision 0001 requires the core to work without a server, and AGENTS.md rule 9 forbids network access at validation time. The initial adopter records links only, so Weft reads issue systems and never writes to them; creating issues is a candidate agent tool for other adopters.
+
+Current leaning is an adapter per issue system that runs as its own step, in CI or on demand, and writes issue state into a source holon with the time of synchronization in its context graph. Validation and report generation read only that holon, and a report states the synchronization time it reflects. Open is whether the synchronized state is committed to git or kept as a build artifact; committing it makes reports reproducible from a checkout, and keeping it as an artifact keeps issue data out of the model's history.
