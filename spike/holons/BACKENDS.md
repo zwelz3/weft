@@ -32,12 +32,55 @@ not the normative graph against the toolkit's raw metaclasses). This spike does 
 second mapping; it is a gap worth recording against OQ6, which already covers the related question
 of shapes that target nothing in a holon's interior (holonic's `cga:untargetedTypeSeverity`).
 
-## Fuseki backend
+## Fuseki backend (spike 2, step 1)
 
-Not run. A listener answers on port 3030, but a plain HTTP request to it gets "Client sent an HTTP
-request to an HTTPS server", and an HTTPS request fails the TLS handshake (`curl` exit 35); neither
-response is what `holonic.backends.FusekiBackend` expects from a Fuseki dataset endpoint (Fuseki
-serves plain HTTP by default), and no dataset name or credential is known for whatever is behind
-that port. The environment does not otherwise mention a provisioned Fuseki instance. Fuseki run
-deferred: no Fuseki instance is confirmed reachable without a credential in this spike's
-environment.
+Spike 1 deferred this because the shared listener on port 3030 answers TLS, not plain HTTP, and
+carries no known dataset name or credential (AGENTS.md rule 1 also rules that listener out: it is
+not a disposable instance this spike owns). Spike 2 runs a disposable Fuseki instead, per the
+brief: a fresh download of Fuseki, started with an in-memory dataset, stopped at the end of this
+section. This is a tier-1 addition (AGENTS.md rule 1): it needs a running server, unlike the
+rdflib backend, which every core Weft feature must still work without.
+
+- **Version:** Apache Jena Fuseki 6.2.0 (`apache-jena-fuseki-6.2.0.tar.gz` from
+  `https://dlcdn.apache.org/jena/binaries/`, SHA-512
+  `ba65f5867d2d4741b2ed9e2af5a0d4fbb447909894ab2a0c6bc4dac8997f4fe339c87b13c48d45d054977769f0f8bf763ea346b1f7792d5cdc458041bd43a132`,
+  matching the published `.sha512`).
+- **Runtime:** the `eclipse-temurin:21-jre` container image (already present in this environment),
+  with the extracted Fuseki tree copied in via `docker cp` and run as the container's main process
+  (bind-mounting the extracted tree did not work in this sandbox: the mounted directory appeared
+  empty to the container even though `docker run -v parent:/data` for the parent directory listed
+  it; `docker cp` into a long-lived container sidesteps that).
+- **Command:** `java -jar fuseki-server.jar --port=57027 --mem /ds`, run with `docker exec -d` inside
+  a container started with `docker run -d --network host eclipse-temurin:21-jre sleep 3600`.
+  `--mem` is Fuseki's in-memory, non-persistent dataset; nothing is written to disk and the dataset
+  is gone when the container stops.
+- **Port:** `57027` (host-local, chosen free at the time; not 3030, so there is no ambiguity with
+  the shared listener this spike does not use).
+- **Teardown:** `docker stop <container-id>`; `--rm` on the `docker run` removes the container on
+  stop, so no cleanup step is left behind.
+
+`spike/holons/load_holons.py` now takes `--backend rdflib|fuseki` (default `rdflib`, unchanged from
+spike 1) plus `--fuseki-url` / `--fuseki-dataset`, and builds a `holonic.backends.fuseki_backend.FusekiBackend`
+for the Fuseki case. Both runs in this section use the same holonic commit (`25d1c84`, decision
+0003's package pin — spike 1's rdflib report was generated against `d8d1758` per
+`spike/ENVIRONMENT.md`, so it is not compared byte-for-byte here; this section regenerates an
+rdflib run from the same commit as the Fuseki run for a fair diff).
+
+### Every difference between the two backends
+
+| Aspect | rdflib | Fuseki |
+|---|---|---|
+| Needs a running service | No (in-process, in-memory) | Yes (disposable, started and stopped by this section) |
+| Normative holon `conforms` | `True` | `True` |
+| Projection holon `conforms` | `True` | `True` |
+| Violations / warnings / untargeted-node counts | identical | identical |
+| `MembraneResult.report_text` | byte-identical to Fuseki's | byte-identical to rdflib's |
+| Wall time for this section's load-and-validate run | 0.66 s | 1.16 s (HTTP round trips to the dataset) |
+| Persistence | None (process memory) | None here (`--mem`), but Fuseki also supports a persistent TDB2 dataset that rdflib's in-memory graph has no counterpart for |
+| AGENTS.md tier | 0 (works offline) | 1 (needs a server; this section's addition) |
+
+Byte-for-byte, `spike/holons/fuseki-report.md` and an rdflib run taken at the same holonic commit
+differ only in which backend name the report states. The finding from spike 1 (`conforms = True`
+is vacuous for the normative holon, because step 5/6's shapes target OWL export classes the
+normative graph's nodes are not instances of) holds identically on both backends; it is a shape
+problem, not a backend difference, and is the gap addressed below in §2.

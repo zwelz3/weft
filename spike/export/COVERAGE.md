@@ -1,10 +1,9 @@
 # Step 5 export coverage
 
-16 definitions declared, 16 exported as `owl:Class`.
+18 definitions declared, 18 exported as `owl:Class`.
 
 | Metaclass | Name | Exported as |
 |---|---|---|
-| EnumerationDefinition | BearerKind | owl:Class |
 | MetadataDefinition | Component | owl:Class |
 | MetadataDefinition | Interface | owl:Class |
 | MetadataDefinition | Process | owl:Class |
@@ -17,10 +16,12 @@
 | PartDefinition | Controller | owl:Class |
 | PartDefinition | PressureSensor | owl:Class |
 | PartDefinition | Enclosure | owl:Class |
+| PartDefinition | EmbeddedController | owl:Class |
+| PartDefinition | ThirdPartyModule | owl:Class |
+| InterfaceDefinition | ControllerSensorLink | owl:Class |
 | RequirementDefinition | MaxPressureDef | owl:Class |
 | RequirementDefinition | ResponseTimeDef | owl:Class |
 | VerificationCaseDefinition | PumpSystemAcceptance | owl:Class |
-| FeatureMembership | Component.bearer | owl:ObjectProperty |
 | FeatureMembership | PumpSystem.pump | owl:ObjectProperty |
 | FeatureMembership | PumpSystem.controller | owl:ObjectProperty |
 | FeatureMembership | PumpSystem.sensor | owl:ObjectProperty |

@@ -1,0 +1,17 @@
+# Spike 2 step 3: equivalent of queries/unsatisfied-requirements.rq against
+# the full normative graph.
+#
+# Expected columns: ?requirement ?shortName
+PREFIX sysml: <https://www.omg.org/spec/SysML/20250201/>
+PREFIX tk: <https://weft.ghostsystems.ai/spike1/toolkit-vocab#>
+
+SELECT ?requirement ?shortName
+WHERE {
+  ?requirement a sysml:RequirementUsage ;
+               tk:declaredShortName ?shortName .
+  FILTER NOT EXISTS {
+    ?claim a sysml:SatisfyRequirementUsage ;
+           tk:satisfiedRequirement ?requirement .
+  }
+}
+ORDER BY ?shortName

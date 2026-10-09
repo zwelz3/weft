@@ -1,0 +1,130 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix sysml: <https://www.omg.org/spec/SysML/20250201/> .
+@prefix tk: <https://weft.ghostsystems.ai/spike1/toolkit-vocab#> .
+@prefix weft: <https://weft.ghostsystems.ai/spike2/normative-shapes/> .
+
+# Spike 2 step 2. Targets the toolkit's own class IRIs as they appear in
+# spike/normative/output/*.ttl (sysml:MetadataUsage, sysml:AttributeUsage,
+# sysml:InterfaceDefinition), not step 5/6's OWL export classes --
+# spike/shapes/FINDINGS.md records that a shape set targeting the export
+# classes validates the normative graph vacuously, because the normative
+# graph types its nodes with the toolkit's metaclasses, not the exported
+# classes. These shapes read the raw KerML/SysML element graph directly, so
+# the property paths below walk the toolkit's own AST shape (FeatureValue
+# expression trees for a metadata feature's value, Subclassification for a
+# specialization) rather than a derived, flattened property.
+#
+# A stand-in alignment registry for decision 0005's "every bearer value has
+# exactly one alignment axiom": the real alignment file is profile work
+# (docs/plans/profile-brief.md), not this spike. These three entries stand
+# in for it, keyed by the bearer value's declared name. They are inlined as
+# a SPARQL VALUES block in the shape below (not asserted as data triples
+# here) because a SPARQL-based shape's sh:select runs against the data
+# graph pySHACL validates, not the shapes graph that carries this file --
+# triples asserted only here would be invisible to the constraint query at
+# validation time.
+
+# Decision 0005, first shape: a Component-stereotyped element (a
+# MetadataUsage whose tk:metadataDefinition is named "Component") must
+# declare at least one bearer value typed BearerKind. The toolkit stores a
+# metadata feature's assigned value behind a FeatureValue expression (a
+# FeatureReferenceExpression for a single value, an OperatorExpression with
+# tk:argument branches for a parenthesized list), so the property path
+# walks tk:member / tk:argument to any depth before the final tk:referent
+# hop that reaches the assigned AttributeUsage.
+weft:ComponentBearerMinCountShape
+    a sh:NodeShape ;
+    sh:targetClass sysml:MetadataUsage ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Component stereotype requires at least one bearer value typed BearerKind (decision 0005)." ;
+        sh:severity sh:Violation ;
+        sh:prefixes [
+            sh:declare [ sh:prefix "tk" ; sh:namespace "https://weft.ghostsystems.ai/spike1/toolkit-vocab#"^^<http://www.w3.org/2001/XMLSchema#anyURI> ] ;
+            sh:declare [ sh:prefix "sysml" ; sh:namespace "https://www.omg.org/spec/SysML/20250201/"^^<http://www.w3.org/2001/XMLSchema#anyURI> ] ;
+        ] ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                $this tk:metadataDefinition ?def .
+                ?def tk:declaredName "Component" .
+                FILTER NOT EXISTS {
+                    $this tk:ownedFeature ?bf .
+                    ?bf tk:declaredName "bearer" .
+                    ?bf (tk:member|tk:argument)*/tk:referent ?val .
+                    ?val a sysml:AttributeUsage ;
+                        tk:type ?bk .
+                    ?bk tk:declaredName "BearerKind" .
+                }
+            }
+        """ ;
+    ] .
+
+# Decision 0005, second shape: every bearer value declared in the model
+# (an AttributeUsage typed BearerKind -- the profile's `material` and
+# `information`, or a project-declared value such as `thirdPartyBinary`)
+# has exactly one alignment axiom. The three names below stand in for a
+# real alignment file (docs/plans/profile-brief.md is where that belongs);
+# each is registered exactly once, so "declared name is in this set" and
+# "has exactly one alignment axiom" coincide, and a value whose name is
+# outside the set (no axiom registered for it) violates. SHACL forbids a
+# SPARQL constraint from containing a VALUES clause, so the registry is a
+# NOT IN list rather than a joined triple pattern.
+weft:BearerValueAlignmentAxiomShape
+    a sh:NodeShape ;
+    sh:targetClass sysml:AttributeUsage ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Bearer value must have exactly one alignment axiom (decision 0005)." ;
+        sh:severity sh:Violation ;
+        sh:prefixes [
+            sh:declare [ sh:prefix "tk" ; sh:namespace "https://weft.ghostsystems.ai/spike1/toolkit-vocab#"^^<http://www.w3.org/2001/XMLSchema#anyURI> ] ;
+            sh:declare [ sh:prefix "weft" ; sh:namespace "https://weft.ghostsystems.ai/spike2/normative-shapes/"^^<http://www.w3.org/2001/XMLSchema#anyURI> ] ;
+        ] ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                $this tk:type ?bk ;
+                      tk:declaredName ?name .
+                ?bk tk:declaredName "BearerKind" .
+                # Excludes the feature slot itself: `metadata def Component {
+                # attribute bearer : BearerKind[1..*]; }` declares one
+                # AttributeUsage named "bearer", typed BearerKind, that is
+                # never an assigned value -- only its per-component
+                # redefinitions are.
+                FILTER (?name != "bearer")
+                FILTER (?name NOT IN ("material", "information", "thirdPartyBinary"))
+            }
+        """ ;
+    ] .
+
+# Decision 0006: an `individual interface def` (tk:isIndividual true) is
+# linked to the specification it specializes by an object property -- the
+# toolkit already emits this as Subclassification's tk:general, an IRI
+# (AGENTS.md rule 5), not a literal; this shape asserts the link exists and
+# resolves to another InterfaceDefinition rather than asserting a new
+# property of Weft's own.
+weft:IndividualInterfaceLinkedToSpecificationShape
+    a sh:NodeShape ;
+    sh:targetClass sysml:InterfaceDefinition ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "An individual interface def must specialize (object property, not a literal) the specification it realizes (decision 0006)." ;
+        sh:severity sh:Violation ;
+        sh:prefixes [
+            sh:declare [ sh:prefix "tk" ; sh:namespace "https://weft.ghostsystems.ai/spike1/toolkit-vocab#"^^<http://www.w3.org/2001/XMLSchema#anyURI> ] ;
+            sh:declare [ sh:prefix "sysml" ; sh:namespace "https://www.omg.org/spec/SysML/20250201/"^^<http://www.w3.org/2001/XMLSchema#anyURI> ] ;
+        ] ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                $this tk:isIndividual true .
+                FILTER NOT EXISTS {
+                    $this tk:ownedSpecialization ?spec .
+                    ?spec tk:general ?target .
+                    ?target a sysml:InterfaceDefinition .
+                    FILTER(isIRI(?target))
+                }
+            }
+        """ ;
+    ] .
