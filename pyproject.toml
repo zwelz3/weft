@@ -28,3 +28,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# The package lives under src/. Putting src on the test path lets a bare
+# checkout run the suite without installing weft first (the merge gate runs
+# pytest on an uninstalled worktree).
+pythonpath = ["src"]
