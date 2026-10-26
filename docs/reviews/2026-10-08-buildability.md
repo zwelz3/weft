@@ -34,7 +34,7 @@ The decisions are settled and consistent, the profile brief is close to buildabl
 
 ## Findings on the profile brief
 
-- Treat Component as a role borne by either a material artifact or an information content entity. This removes the hardware-versus-software fork from the stereotype and moves it to the bearer.
+- Treat Component as a role borne by a material artifact, or by the material entity that concretizes an information content entity. An information content entity is a generically dependent continuant and cannot bear a role itself (corrected 2026-10-26, see decision 0005). This removes the hardware-versus-software fork from the stereotype and moves it to the bearer.
 - Apply Interface to the definition only, as an information content entity, and leave the realized connection to instance data.
 - Do not name the action-def stereotype Function. CCO's Function is a disposition, while an action's instances are processes. Name it for what it exports.
 - Two different OQ11s exist in the documents: OQ6 cites holonic's OQ11 and the branch introduces Weft's own OQ11. Prefix cross-project references (`holonic OQ11`).
