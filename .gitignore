@@ -4,3 +4,7 @@ build/
 dist/
 .venv/
 .pytest_cache/
+
+# Regenerated on demand; spike/RESULTS.md records its hash and triple count.
+spike/normative/output/quadcopter.ttl
+spike/normative/output/*.gaps.txt
