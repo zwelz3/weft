@@ -38,11 +38,11 @@ Each stereotype entry in `docs/profile.md` states the following, and the profile
 |---|---|---|---|---|
 | Requirement | `requirement def`, `requirement` | Statements of what a system must do or be | CCO directive information content entity | Candidate |
 | Material artifact | `part def`, `part` | Physical objects made to serve a function | CCO material artifact (BFO object) | Candidate |
-| Component | `part def`, `part` | Constituents of the system under design, physical or software | Open; a software component is an information content entity in CCO, and a hardware component is a material artifact | Decision needed |
-| Interface | `interface def`, `port def` | Open; the specification of an interaction and the realized connection fall in different BFO categories | Open | Decision needed |
-| Function | `action def` | Open; a SysML action's instances are performances (BFO processes), while a BFO function is a disposition of a bearer | Open | Decision needed |
+| Component | `part def`, `part` | Constituents of the system under design, physical or software | A component role (BFO role), with the bearer's CCO class set by an open `bearer` list (decision 0005) | Decided |
+| Interface | `interface def`, `port def`, `interface`, `port` | Interface specifications, or with `individual`, realized connections | CCO prescriptive information content entity for specifications, BFO material entity for individuals (decision 0006) | Decided |
+| Process | `action def` | Performances of the action | BFO process (decision 0007) | Decided |
 
-The three open rows are decided in the profile work and each decision is recorded in `docs/decisions/`. A stereotype is added beyond this table only if the corpus model or the example component needs it.
+The Component, Interface, and Process rows are decided in decisions 0005 to 0007. A stereotype is added beyond this table only if the corpus model or the example component needs it.
 
 ## Trace metadata
 
@@ -52,7 +52,7 @@ The profile defines one metadata definition for trace links, applied to the elem
 
 1. `sysmlv2 check --strict` passes on the profile and on the corpus model.
 2. The corpus model uses every stereotype and every trace property, and a test fails if one is unused (AGENTS.md rule 8).
-3. Every stereotype has exactly one alignment axiom, every alignment axiom names an existing stereotype, and a test checks both directions.
+3. Every alignment row the stereotype decisions define (one per stereotype without rows, one per `bearer` value in decision 0005, and one per row of decision 0006's table) has exactly one alignment axiom, every alignment axiom names an existing row, and a test checks both directions.
 4. Every property that a shape requires at Violation severity is produced from the corpus model's textual notation by the derivation step (AGENTS.md rule 7).
 
 The tests resolve BFO, CCO, and the profile from files in the package or the checkout, without network access (AGENTS.md rule 9).
