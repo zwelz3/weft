@@ -39,7 +39,7 @@ Each stereotype entry in `docs/profile.md` states the following, and the profile
 | Requirement | `requirement def`, `requirement` | Statements of what a system must do or be | CCO directive information content entity | Candidate |
 | Material artifact | `part def`, `part` | Physical objects made to serve a function | CCO material artifact (BFO object) | Candidate |
 | Component | `part def`, `part` | Constituents of the system under design, physical or software | A component role (BFO role), with the bearer's CCO class set by an open `bearer` list (decision 0005) | Decided |
-| Interface | `interface def`, `port def`, `interface`, `port` | Interface specifications, or with `individual`, realized connections | CCO directive information content entity for specifications, BFO material entity for individuals (decision 0006) | Decided |
+| Interface | `interface def`, `port def`, `interface`, `port` | Interface specifications, or with `individual`, realized connections | CCO prescriptive information content entity for specifications, BFO material entity for individuals (decision 0006) | Decided |
 | Process | `action def` | Performances of the action | BFO process (decision 0007) | Decided |
 
 The Component, Interface, and Process rows are decided in decisions 0005 to 0007. A stereotype is added beyond this table only if the corpus model or the example component needs it.
