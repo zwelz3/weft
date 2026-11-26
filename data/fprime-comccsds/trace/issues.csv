@@ -1,0 +1,7 @@
+issue,title,state,closed_by_pull_request,closing_commit,related_requirement,link_basis
+3598,ComQueue hits an ASSERT if used without one of the queues,closed (completed),5884,f70926cff2fa890d3adc90acbde5a16b3c43b5e9,SVC-COMQUEUE-012,commit message says "Fixes #3598" and the commit adds SVC-COMQUEUE-012 to Svc/ComQueue/docs/sdd.md
+5901,Svc/ComQueue: FLUSH_QUEUE / SET_QUEUE_PRIORITY validate index only after folding (title shortened),closed (completed),5956,1fcade86cfc6fde4fd652d0180127a4fd1d080c5,SVC-COMQUEUE-011,commit message says "Fixes #5901"; the requirement link is inferred because the commit adds tests for the flush command and names no requirement
+5011,ComQueue drops oldest buffers without returning ownership on overflow,closed (completed),5014,e0beab9dedf593c31079308e469551efd1db8085,SVC-COMQUEUE-010,commit message says "Closes nasa/fprime#5011"; the requirement link is inferred from SVC-COMQUEUE-010's text (return ownership of incoming buffers)
+6406,Add enable/disable command and configuration to Svc/ComQueue,open,,,,no requirement named; open feature request
+6157,ComQueue: Add command to drop all subsequent incoming buffers.,open,,,,no requirement named; open feature request
+3603,ComQueue may assert when receiving comStatusIn message,open,,,,no requirement named; open defect

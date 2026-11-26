@@ -1,0 +1,8 @@
+requirement,satisfied_by
+SVC-COMCCSDS-001,"`spacePacketFramer` — `Svc.Ccsds.SpacePacketFramer`, `tmFramer` — `Svc.Ccsds.TmFramer`"
+SVC-COMCCSDS-002,`frameAccumulator` — `Svc.FrameAccumulator`
+SVC-COMCCSDS-003,`fprimeRouter` — `Svc.FprimeRouter` (default; swappable via `ComCcsdsRouterConfig.fpp`)
+SVC-COMCCSDS-004,`Subtopology` (variant including `Svc.ComStub`)
+SVC-COMCCSDS-005,`FramingSubtopology` (variant expecting external `Svc.ComInterface`)
+SVC-COMCCSDS-006,`ComCcsdsConfig` module
+SVC-COMCCSDS-007,"`SpacePacketFraming`, `SpacePacket`, and `TmTcFraming` topologies"

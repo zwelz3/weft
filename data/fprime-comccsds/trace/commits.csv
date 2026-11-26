@@ -1,0 +1,6 @@
+commit,date,subject,pull_request,requirement_rows_added_or_changed,tests_added
+f70926cff2fa890d3adc90acbde5a16b3c43b5e9,2026-09-10,Svc/ComQueue: honour depth 0 as a disabled queue instead of asserting (#5884),5884,SVC-COMQUEUE-012,Nominal.DepthZeroQueue;OffNominal.AllQueuesDisabled
+fa2fe5654e386171111cc659cefaa13afd4e9e09,2026-10-29,Svc/ComQueue: Count async ingress and managed FIFO overflow drops (#6174),6174,SVC-COMQUEUE-013,OffNominal.BufferAsyncIngressDrop;OffNominal.ComPacketAsyncIngressDrop;OffNominal.ConcurrentComAsyncIngressDrop;OffNominal.FifoDropNewestAccounting;OffNominal.FifoDropOldestAccounting
+1fcade86cfc6fde4fd652d0180127a4fd1d080c5,2026-09-15,Svc/ComQueue: validate FLUSH_QUEUE/SET_QUEUE_PRIORITY index per queue type before folding (#5956),5956,,Commands.SetQueuePriorityInvalidBufferIndex;OffNominal.FlushInvalidIndex
+e0beab9dedf593c31079308e469551efd1db8085,2026-04-30,Fix ComQueue dropping oldest Fw::Buffer without returning ownership (#5014),5014,,
+064fe296f2cf304930a178f54334f4669bdf969b,2025-12-15,Add queue flush commands to com queue (#4559),4559,SVC-COMQUEUE-011,Nominal.Flush;Nominal.FlushAll
