@@ -153,19 +153,19 @@ therefore the untargeted report with a declared severity, read through health ra
 `spike/shapes/normative-shapes.ttl`: three shapes whose `sh:targetClass` is a toolkit metaclass
 (`sysml:MetadataUsage`, `sysml:AttributeUsage`, `sysml:InterfaceDefinition`). Each has focus
 nodes on the raw normative graph, so these three profile shapes are not vacuous there. They do not
-close the membrane gap `spike/shapes/FINDINGS.md` recorded in spike 1: the file is not loaded as
+close the membrane gap `spike/holons/BACKENDS.md` recorded in spike 1: the file is not loaded as
 the normative holon's boundary, and loaded as one it targets 18 of the graph's 630 typed subjects
 and leaves 612 untargeted (`spike/holons/test_load_holons.py`). A boundary that targets the whole
 normative graph would need shapes for its other metaclasses or `cga:permitsType` declarations, and
 the detector for what remains untargeted is holonic's untargeted report with a declared severity
 (step 1).
 
-`spike/model/profile.sysml` is brought in line with decisions 0005 to 0007's accepted textual forms (open `attribute def
-BearerKind` in place of the enum; `Interface` on usages and `individual` defs, not definitions
-only), and the pump model gains one element per new case: `EmbeddedController` (a two-valued
-`bearer = (material, information)`), `ThirdPartyModule` (a project-declared bearer value,
-`thirdPartyBinary`), and `ControllerSensorLink` (an `individual interface def` specializing
-`DataLink`) with its usage. `sysmlv2 check --strict --lib` passes on the extended model
+`spike/model/profile.sysml` is brought in line with decisions 0005 to 0007's accepted textual
+forms (open `attribute def BearerKind` in place of the enum; `Interface` on usages and `individual`
+defs, not definitions only), and the pump model gains one element per new case:
+`EmbeddedController` (a two-valued `bearer = (material, information)`), `ThirdPartyModule` (a
+project-declared bearer value, `thirdPartyBinary`), and `ControllerSensorLink` (an `individual
+interface def` specializing `DataLink`) with its usage. `sysmlv2 check --strict --lib` passes on the extended model
 (`spike/model/CHECK.md`).
 
 Step 5's OWL export and step 6's shapes are regenerated from the extended model. Decision 0005's
@@ -176,9 +176,9 @@ exported", because it counted declared definitions from the exporter's own list.
 counts declared definitions from the model JSON (19), the exporter and `spike/shapes/shacl_export.py`
 handle both metaclasses (19 of 19 exported), and `shacl_export.py` reads a declared
 `MultiplicityRange`, so `bearer : BearerKind[1..*]` gives `sh:minCount 1` and no `sh:maxCount`.
-Spike 1's committed `spike/shapes/shapes.ttl` targeted `class/BearerKind` and
-`property/Component_bearer`, which the unregenerated export no longer produced; the regenerated
-file targets IRIs the export produces. On the stand-in instance table, the regenerated shapes catch
+The committed `spike/shapes/shapes.ttl` was still spike 1's and targeted `class/BearerKind` and
+`property/Component_bearer`, which the export no longer produced; the regenerated file targets IRIs
+the export produces. On the stand-in instance table, the regenerated shapes catch
 9 of the 10 injected faults instead of 10 (`spike/shapes/FINDINGS.md`, spike 2 section).
 
 `spike/shapes/test_shacl_export.py` tests non-vacuity on the raw graph. For each of the three
@@ -231,11 +231,11 @@ equivalents (3, 4, and 6 more: the usage-to-definition and verification-membersh
 projection flattens). `unsatisfied-requirements.rq` needed the same number, and
 `requirement-satisfied-by.rq` needed one fewer, because the projected query's `OPTIONAL { ?claim
 proj:verdict ?verdict }` has no counterpart in the graph and `m5` attaches the verdict outside the
-query (below). None
-needed a property-path operator: each `proj:` term resolves through a short, fixed chain of named
-toolkit properties, not a variable-length path. This answers OQ10's deferred question for this
-model (630 typed elements): the projection saves between -1 and 6 triple patterns per query, a
-small, fixed number of joins rather than an asymptotic difference.
+query (below). None needed a property-path operator: each `proj:` term resolves through a short,
+fixed chain of named toolkit properties, not a variable-length path. This answers OQ10's deferred
+question for this model (630 typed elements): a projected query ranges from one triple pattern
+longer to six shorter than its full-graph equivalent, a small, fixed number of joins rather than an
+asymptotic difference.
 
 Three limits on the equality column. Equality compares sets of rows, so it does not check row order
 or duplicate rows. `unsatisfied-requirements.rq` returns 0 rows on both graphs, so its equality is
