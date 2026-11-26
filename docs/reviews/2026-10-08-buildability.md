@@ -4,7 +4,7 @@ Review of the design documents on `main` and on the branch that adds the adopter
 
 ## Verdict
 
-The decisions are settled and consistent, the profile brief is close to buildable, and the adopter plan gives a defensible order of work. What stops a build from starting is not a missing decision. It is three artifacts that the documents refer to but do not yet contain: the graph contract that AGENTS.md rule 3 protects, a pinned and reproducible environment, and the three stereotype decisions the profile brief defers. With those written, spike 1 and the profile can start the same day.
+The decisions are settled and consistent, the profile brief is close to buildable, and the adopter plan gives a defensible order of work. What stops a build from starting is not a missing decision. It is three artifacts that the documents refer to but do not yet contain: the graph contract that AGENTS.md rule 3 protects, a pinned and reproducible environment, and the three stereotype decisions the profile brief defers. With those written, spike 1 and the profile can start without waiting on another decision.
 
 ## Readiness by area
 
@@ -34,7 +34,7 @@ The decisions are settled and consistent, the profile brief is close to buildabl
 
 ## Findings on the profile brief
 
-- Treat Component as a role borne by either a material artifact or an information content entity. This removes the hardware-versus-software fork from the stereotype and moves it to the bearer.
+- Treat Component as a role borne by a material artifact, or by the material entity in which a concretization of an information content entity inheres. An information content entity is a generically dependent continuant and cannot bear a role itself (corrected 2026-10-26 and 2026-11-26, see decision 0005). This removes the hardware-versus-software fork from the stereotype and moves it to the bearer.
 - Apply Interface to the definition only, as an information content entity, and leave the realized connection to instance data.
 - Do not name the action-def stereotype Function. CCO's Function is a disposition, while an action's instances are processes. Name it for what it exports.
 - Two different OQ11s exist in the documents: OQ6 cites holonic's OQ11 and the branch introduces Weft's own OQ11. Prefix cross-project references (`holonic OQ11`).

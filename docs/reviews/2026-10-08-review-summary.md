@@ -26,7 +26,7 @@ Secondary findings, each with its fix in MR1:
 
 ## 2. MR1: findings and small fixes
 
-Branch `review/buildability-2026-10-08`, filed as [zwelz3/weft#7](https://github.com/zwelz3/weft/pull/7) on top of the adopter branch ([zwelz3/weft#3](https://github.com/zwelz3/weft/pull/3)). Thirteen commits, authored without AI attribution: three for the review and the document fixes, one per gap closed, one adopting the license, and this record. An earlier filing split the same commits across two fork pull requests; those are closed in favor of this one.
+Branch `review/buildability-2026-10-08`, filed as [zwelz3/weft#7](https://github.com/zwelz3/weft/pull/7) on top of the adopter branch ([zwelz3/weft#3](https://github.com/zwelz3/weft/pull/3)). Its commits are authored without AI attribution: three for the review and the document fixes, one per gap closed, one adopting the license, this record, and later corrections. An earlier filing split the same commits across two fork pull requests; those are closed in favor of this one.
 
 ### Document fixes
 
@@ -45,14 +45,14 @@ Branch `review/buildability-2026-10-08`, filed as [zwelz3/weft#7](https://github
 
 ### Gap closures
 
-One commit per item, in the order the review gives. All eight items have landed.
+One commit per item, in the order the review gives. Items 1 to 5 and 7 have landed; item 6 is spike 1, filed as [zwelz3/weft#8](https://github.com/zwelz3/weft/pull/8), and item 8's check against live issue state is not written.
 
 | Item | Change | State |
 |---|---|---|
 | 1. License | Apache-2.0 `LICENSE` with copyright holder Zech Welz, a License section in README.md, and rule 13 in AGENTS.md requiring a compatibility check of every packaged dependency. Apache-2.0 was adopted on 2026-10-08; the earlier commit body calls it a proposal. | Landed |
-| 2. Pins | Decision 0002 states the toolkit commit `8212217` (release 0.10.2), the library commit `de1070a`, and the id scheme Weft consumes. Decision 0003 pins holonic `main` at `d8d1758` until 0.9.0. Every row of the STATUS.md versions table carries a hash. | Landed |
+| 2. Pins | Decision 0002 states the toolkit commit `8212217` (release 0.10.2), the library commit `de1070a`, and the id scheme Weft consumes. Decision 0003 pins holonic `main` until 0.9.0, at `067f5ea` since 2026-11-26 (first `d8d1758`, then `25d1c84`). Every row of the STATUS.md versions table carries a hash. | Landed |
 | 3. Package and CI | `pyproject.toml`, `src/weft/__init__.py`, `tests/test_package.py`, and `.github/workflows/ci.yml`. The workflow builds the `sysmlv2` abi3 wheel once per pinned toolkit commit, caches it by hash, and runs a test matrix on Ubuntu and Windows across Python 3.11 to 3.13. `tests/test_status.py` is an offline structural check of the STATUS.md open-work table. | Landed |
-| 4. Decisions 0005 to 0007 | Component as a role borne by a material artifact or an information content entity. Interface applied to the definition only, as an information content entity. The action-definition stereotype named for what it exports, with the reason CCO's Function does not fit. Status: proposed. | Landed |
+| 4. Decisions 0005 to 0007 | Component as a role, with an open `bearer` list. Interface on definitions and usages, with the SysML `individual` keyword separating specifications from realized connections. The action-definition stereotype named Process, with the reason CCO's Function does not fit. Status: accepted, after review revised 0005 and 0006. | Landed |
 | 5. Thread queries | `queries/` with five SPARQL SELECT files derived from the traceability matrix and gap analysis, each stating its question, assumed projection terms, and expected columns. They are the specification for spike step 4 and are untested until the graph contract exists. | Landed |
 | 6. Graph contract skeleton | `docs/graph-contract.md` with section headings and one sentence each: IRI minting, element mapping, relationship mapping and ranges, ordered properties, projection vocabulary, contract versioning. Spike 1 fills it. | Landed |
 | 7. Upstream issue draft | `docs/outreach/sysml-toolkit-rename-stable-identity.md`, an issue text for Open-MBEE/sysml-toolkit citing the IDS.md backlog entry. The maintainer files it. | Landed |
@@ -68,7 +68,7 @@ Issue #2 defines spike 1. This section restates it as a test plan with the chang
 
 ### Changes to issue #2
 
-- Pin holonic `main` at `d8d1758`, not 0.8.0. Step 6 depends on the fixes in #30 and #50.
+- Pin holonic `main`, not 0.8.0, because step 6 depends on the fixes in #30 and #50. The review proposed `d8d1758`, which predates those fixes; decision 0003 pins `067f5ea`.
 - Name the graph contract as the primary deliverable.
 - Use a public model from SysML-v2-Release at commit `de1070a` for steps 1 to 5, so the spike starts before the adopter's component arrives. Steps 6 and 7 wait on the real component, instance table, and tickets from issue #1.
 - Take the five thread queries in step 4 from `queries/` (MR1 item 5), not from scratch.
@@ -77,7 +77,7 @@ Issue #2 defines spike 1. This section restates it as a test plan with the chang
 
 | Step | Work | Evidence produced |
 |---|---|---|
-| 1. Environment | Install the toolkit bindings at `8212217`, holonic at `d8d1758`, rdflib, pySHACL. Record the toolkit commit and Rust version. | `spike/ENVIRONMENT.md` |
+| 1. Environment | Install the toolkit bindings at `8212217`, holonic at the commit decision 0003 pins, rdflib, pySHACL. Record the toolkit commit and Rust version. | `spike/ENVIRONMENT.md` |
 | 2. Model | One component in textual notation with a stand-in profile of three stereotypes and a short name on every requirement. `check --strict` passes. | `spike/model/` |
 | 3. Normative graph | Toolkit JSON to RDF through a JSON-LD context. Requirements get IRIs minted from short names; everything else keeps derived ids. Record the ordered-property representation. | Draft of the element and relationship sections of the graph contract |
 | 4. Projection | The five queries from `queries/` in plain language, then the projection vocabulary and SPARQL CONSTRUCT queries that serve them. | Draft of the projection section of the graph contract |
