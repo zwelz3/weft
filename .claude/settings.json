@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"${CLAUDE_PROJECT_DIR}/.claude/hooks/handoff.py\" precompact",
+            "command": "python \"${CLAUDE_PROJECT_DIR}/.claude/hooks/handoff.py\" precompact || exit 1",
             "timeout": 30
           }
         ]
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"${CLAUDE_PROJECT_DIR}/.claude/hooks/handoff.py\" sessionstart",
+            "command": "python \"${CLAUDE_PROJECT_DIR}/.claude/hooks/handoff.py\" sessionstart || exit 1",
             "timeout": 30
           }
         ]

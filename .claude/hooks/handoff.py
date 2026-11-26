@@ -2,8 +2,9 @@
 
 Usage: handoff.py precompact | sessionstart
 
-Both commands rewrite the file's "Repository state" section from git and keep
-its "Notes" section unchanged. precompact prints instructions for the
+Both commands replace the block between BEGIN and END with the repository
+state read from git, appending the block if it is absent, and keep every other
+line of the file unchanged. precompact prints instructions for the
 compaction summary; sessionstart prints the handoff for the new context,
 shortened to fit the hook output limit. Reads only the local checkout.
 """
@@ -15,9 +16,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 HANDOFF = ROOT / ".claude" / "handoff.md"
-NOTES = "## Notes"
-STATE = "## Repository state"
-NO_NOTES = "None recorded."
+BEGIN = "<!-- handoff.py: generated from git below; rewritten on every run -->"
+END = "<!-- handoff.py: end of generated state -->"
+NEW_FILE = "# Handoff\n\n## Notes\n\nNone recorded.\n"
 OUTPUT_LIMIT = 9000
 
 SUMMARY_INSTRUCTIONS = """\
@@ -35,14 +36,12 @@ def git(*args):
     return result.stdout.strip() if result.returncode == 0 else ""
 
 
-def notes():
-    if not HANDOFF.exists():
-        return NO_NOTES
-    text = HANDOFF.read_text(encoding="utf-8")
-    if NOTES not in text:
-        return NO_NOTES
-    body = text.split(NOTES, 1)[1].split(STATE, 1)[0].strip()
-    return body or NO_NOTES
+def without_state(text):
+    if BEGIN in text and END in text.split(BEGIN, 1)[1]:
+        before, rest = text.split(BEGIN, 1)
+        after = rest.split(END, 1)[1]
+        return before.rstrip() + ("\n\n" + after.strip() if after.strip() else "")
+    return text.rstrip()
 
 
 def base_ref():
@@ -85,6 +84,8 @@ def branches(base):
 def state(event):
     base = base_ref()
     lines = [
+        "## Repository state",
+        "",
         f"Written by `.claude/hooks/handoff.py` at {datetime.now(timezone.utc):%Y-%m-%dT%H:%M:%SZ} ({event}),"
         " from local refs as of the last fetch.",
         "",
@@ -106,7 +107,8 @@ def state(event):
 
 def write(event):
     HANDOFF.parent.mkdir(parents=True, exist_ok=True)
-    text = f"# Handoff\n\n{NOTES}\n\n{notes()}\n\n{STATE}\n\n{state(event)}\n"
+    kept = HANDOFF.read_text(encoding="utf-8") if HANDOFF.exists() else NEW_FILE
+    text = f"{without_state(kept)}\n\n{BEGIN}\n{state(event)}\n{END}\n"
     HANDOFF.write_text(text, encoding="utf-8")
     return text
 

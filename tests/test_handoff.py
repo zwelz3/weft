@@ -27,6 +27,11 @@ def test_hooks_run_the_script():
     assert commands("PreCompact") and commands("SessionStart")
 
 
+def test_a_failing_hook_never_exits_with_the_blocking_code():
+    for command in commands("PreCompact") + commands("SessionStart"):
+        assert command.endswith("|| exit 1")
+
+
 def test_session_start_fires_after_compaction_and_clear():
     matchers = [entry["matcher"] for entry in hook_entries("SessionStart")]
     for source in ("compact", "clear"):
@@ -77,3 +82,17 @@ def test_restored_handoff_fits_the_output_limit(tmp_path):
     assert len(restored) <= 10_000
     assert "Shortened to fit" in restored
     assert "item 2999" in handoff.read_text(encoding="utf-8")
+
+
+def test_text_outside_the_generated_block_survives(tmp_path):
+    repo = sandbox(tmp_path)
+    handoff = repo / ".claude/handoff.md"
+    run(repo, "precompact")
+    edited = handoff.read_text(encoding="utf-8").replace("## Notes", "## Next actions")
+    handoff.write_text(edited + "\nAppended after the state: merge #5.\n", encoding="utf-8")
+    run(repo, "sessionstart")
+    rewritten = handoff.read_text(encoding="utf-8")
+    assert "## Next actions" in rewritten
+    assert "Appended after the state: merge #5." in rewritten
+    assert rewritten.count("## Repository state") == 1
+    assert "(session start)" in rewritten
