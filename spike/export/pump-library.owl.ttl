@@ -1,6 +1,11 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
+<https://weft.ghostsystems.ai/spike1/pump-library/class/ControllerSensorLink> a owl:Class ;
+    rdfs:subClassOf <https://weft.ghostsystems.ai/spike1/pump-library/class/DataLink> .
+
+<https://weft.ghostsystems.ai/spike1/pump-library/class/EmbeddedController> a owl:Class .
+
 <https://weft.ghostsystems.ai/spike1/pump-library/class/Interface> a owl:Class .
 
 <https://weft.ghostsystems.ai/spike1/pump-library/class/MaxPressureDef> a owl:Class .
@@ -12,6 +17,8 @@
 <https://weft.ghostsystems.ai/spike1/pump-library/class/PumpSystemAcceptance> a owl:Class .
 
 <https://weft.ghostsystems.ai/spike1/pump-library/class/ResponseTimeDef> a owl:Class .
+
+<https://weft.ghostsystems.ai/spike1/pump-library/class/ThirdPartyModule> a owl:Class .
 
 <https://weft.ghostsystems.ai/spike1/pump-library/class/~PowerPort> a owl:Class .
 
@@ -61,11 +68,11 @@
 
 <https://weft.ghostsystems.ai/spike1/pump-library/class/Controller> a owl:Class .
 
-<https://weft.ghostsystems.ai/spike1/pump-library/class/DataLink> a owl:Class .
-
 <https://weft.ghostsystems.ai/spike1/pump-library/class/PowerPort> a owl:Class .
 
 <https://weft.ghostsystems.ai/spike1/pump-library/class/Pump> a owl:Class .
+
+<https://weft.ghostsystems.ai/spike1/pump-library/class/DataLink> a owl:Class .
 
 <https://weft.ghostsystems.ai/spike1/pump-library/class/PumpSystem> a owl:Class .
 

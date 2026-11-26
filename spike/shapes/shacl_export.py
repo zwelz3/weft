@@ -3,11 +3,12 @@ export, reusing step 5's class and property IRIs (owl_export.py) so the
 shapes validate against the same classes the OWL export declares.
 
 One sh:NodeShape per definition, sh:targetClass the class IRI. One
-sh:property per structural feature (a part, port, or interface member),
-sh:path the property IRI, sh:class the feature's type, sh:minCount/
-sh:maxCount 1 (this spike's model declares no explicit multiplicity, so
-every feature gets the metamodel's implicit default of exactly one; a model
-with declared multiplicity ranges needs this extended to read them).
+sh:property per structural feature (a part, port, interface, reference, or
+attribute member), sh:path the property IRI, sh:class the feature's type.
+Cardinality comes from the feature's declared MultiplicityRange when it has
+one (decision 0005's `bearer : BearerKind[1..*]` gives sh:minCount 1 and no
+sh:maxCount); a feature with no declared multiplicity gets sh:minCount and
+sh:maxCount 1, the default this spike assumed before.
 
 A stereotype's own features (here, Component's `bearer`) are declared on the
 metadata definition, not on the component class it annotates (decision
@@ -29,7 +30,7 @@ Usage: python3 shacl_export.py <library.full.json> <library-base-iri> <out.ttl>
 import json
 import sys
 
-from rdflib import Graph, Namespace, URIRef, RDF, RDFS, SH
+from rdflib import Graph, Literal, Namespace, URIRef, RDF, RDFS, SH
 
 DEFINITION_TYPES = {
     "PartDefinition",
@@ -40,10 +41,34 @@ DEFINITION_TYPES = {
     "RequirementDefinition",
     "MetadataDefinition",
     "EnumerationDefinition",
+    "AttributeDefinition",
     "VerificationCaseDefinition",
 }
 
-FEATURE_USAGE_TYPES = {"PartUsage", "PortUsage", "InterfaceUsage", "ReferenceUsage"}
+FEATURE_USAGE_TYPES = {"PartUsage", "PortUsage", "InterfaceUsage", "ReferenceUsage", "AttributeUsage"}
+
+
+def multiplicity(member, by_id):
+    """(min, max) from a usage's declared MultiplicityRange; max None means
+    unbounded (`*`). A usage with no declared multiplicity gets (1, 1)."""
+    ref = member.get("multiplicity")
+    rng = by_id.get(ref["@id"]) if ref else None
+    if rng is None or rng.get("@type") != "MultiplicityRange":
+        return 1, 1
+
+    def bound(key):
+        b = rng.get(key)
+        node = by_id.get(b["@id"]) if b else None
+        if node is None:
+            return None
+        if node["@type"] == "LiteralInfinity":
+            return None
+        return int(node["value"]) if node["@type"] == "LiteralInteger" else None
+
+    lower, upper = bound("lowerBound"), bound("upperBound")
+    if lower is None:
+        lower = upper if upper is not None else 0
+    return lower, upper
 
 
 def collect(elements, library_base):
@@ -53,7 +78,7 @@ def collect(elements, library_base):
         if e["@type"] in DEFINITION_TYPES and e.get("declaredName"):
             class_iri[e["@id"]] = URIRef(f"{library_base}class/{e['declaredName']}")
 
-    # (owner_class_id, name) -> (prop_iri, range_class_id)
+    # owner_class_id -> [(prop_iri, range_class_id, (min, max))]
     properties_by_owner = {}
     for e in elements:
         if e["@type"] != "FeatureMembership":
@@ -71,7 +96,9 @@ def collect(elements, library_base):
         if range_id in class_iri:
             owner_name = by_id[owner_id]["declaredName"]
             prop_iri = URIRef(f"{library_base}property/{owner_name}_{name}")
-            properties_by_owner.setdefault(owner_id, []).append((prop_iri, range_id))
+            properties_by_owner.setdefault(owner_id, []).append(
+                (prop_iri, range_id, multiplicity(member, by_id))
+            )
 
     annotations = []  # (annotated_element_id, metadata_type_id)
     for e in elements:
@@ -102,13 +129,15 @@ def main():
             if annotated_id == class_id:
                 own_and_inherited += properties_by_owner.get(metadata_type_id, [])
 
-        for prop_iri, range_id in own_and_inherited:
+        for prop_iri, range_id, (lower, upper) in own_and_inherited:
             prop_shape = URIRef(f"{prop_iri}-shape")
             g.add((shape_iri, SH.property, prop_shape))
             g.add((prop_shape, SH.path, prop_iri))
             g.add((prop_shape, SH["class"], class_iri[range_id]))
-            g.add((prop_shape, SH.minCount, __import__("rdflib").Literal(1)))
-            g.add((prop_shape, SH.maxCount, __import__("rdflib").Literal(1)))
+            if lower:
+                g.add((prop_shape, SH.minCount, Literal(lower)))
+            if upper is not None:
+                g.add((prop_shape, SH.maxCount, Literal(upper)))
             g.add((prop_shape, SH.severity, SH.Violation))
 
     g.serialize(destination=out_ttl, format="turtle")

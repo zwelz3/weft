@@ -5,72 +5,153 @@ this spike has one version of one model, so it gets one holon per graph
 kind (normative, projection) rather than one holon per version.
 
 Usage: python3 load_holons.py <normative.ttl> <projection.ttl> <shapes.ttl> <out-report.md>
+                              [--backend rdflib|fuseki] [--fuseki-url URL] [--fuseki-dataset NAME]
+                              [--full-result PATH]
+
+The rdflib backend (default) is in-memory and needs nothing running. The
+Fuseki backend talks to an already-running, disposable Fuseki dataset; see
+BACKENDS.md for how spike 2 starts and stops one.
 
 Needs holonic at a commit that reports untargeted nodes (zwelz3/holonic#54,
 merged at 25d1c84); the report records the commit installed.
 """
+import argparse
 import json
-import sys
+import time
 from collections import Counter
 from importlib import metadata
+from pathlib import Path
 
 import holonic
+from rdflib import RDF, Graph
 
 NORMATIVE_HOLON = "https://weft.ghostsystems.ai/spike1/holon/normative-pump-system"
 PROJECTION_HOLON = "https://weft.ghostsystems.ai/spike1/holon/projection-pump-system"
 
 
+def build_backend(args):
+    if args.backend == "rdflib":
+        return None  # HolonicDataset default
+    from holonic.backends.fuseki_backend import FusekiBackend
+
+    return FusekiBackend(args.fuseki_url, dataset=args.fuseki_dataset)
+
+
 def holonic_commit():
-    """The commit pip recorded for a holonic installed from git, else
-    "unknown"."""
-    try:
-        direct = json.loads(metadata.distribution("holonic").read_text("direct_url.json") or "{}")
-    except (FileNotFoundError, json.JSONDecodeError):
-        return "unknown"
-    return direct.get("vcs_info", {}).get("commit_id", "unknown")
+    """The commit holonic was installed from (pip's direct_url.json), or its
+    version string when it was installed some other way."""
+    dist = metadata.distribution("holonic")
+    direct_url = dist.read_text("direct_url.json")
+    if direct_url:
+        commit = json.loads(direct_url).get("vcs_info", {}).get("commit_id")
+        if commit:
+            return commit
+    return dist.version
+
+
+def graph_size(ttl_text):
+    g = Graph().parse(data=ttl_text, format="turtle")
+    return len(g), len(set(g.subjects(RDF.type, None)))
+
+
+def summary_line(result):
+    severities = Counter(u.severity for u in result.untargeted)
+    return (
+        f"conforms = {result.conforms}, health = {result.health.value}, "
+        f"violations = {len(result.violations)}, warnings = {len(result.warnings)}, "
+        f"untargeted nodes = {len(result.untargeted)} "
+        f"({', '.join(f'{n} at {s}' for s, n in sorted(severities.items())) or 'none'})"
+    )
+
+
+def summarize(result):
+    """Counts in place of the MembraneResult repr, whose untargeted list runs
+    to one entry per typed interior node (over 100,000 characters on the
+    pump-system graph)."""
+    by_severity = Counter(u.severity for u in result.untargeted)
+    severities = ", ".join(f"{k}: {v}" for k, v in sorted(by_severity.items())) or "none"
+    return "\n".join(
+        [
+            f"| conforms | {result.conforms} |",
+            f"| health | {result.health.value} |",
+            f"| violations | {len(result.violations)} |",
+            f"| warnings | {len(result.warnings)} |",
+            f"| infos | {len(result.infos)} |",
+            f"| untargeted nodes | {len(result.untargeted)} (by severity: {severities}) |",
+        ]
+    )
 
 
 def main():
-    normative_ttl, projection_ttl, shapes_ttl, report_path = sys.argv[1:5]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("normative_ttl")
+    parser.add_argument("projection_ttl")
+    parser.add_argument("shapes_ttl")
+    parser.add_argument("report_path")
+    parser.add_argument("--backend", choices=["rdflib", "fuseki"], default="rdflib")
+    parser.add_argument("--fuseki-url", default="http://127.0.0.1:3030")
+    parser.add_argument("--fuseki-dataset", default="ds")
+    parser.add_argument(
+        "--full-result",
+        help="also write each holon's full MembraneResult repr (every untargeted node) to this path",
+    )
+    args = parser.parse_args()
 
-    ds = holonic.HolonicDataset()  # default RdflibBackend, in-memory
+    normative_ttl, projection_ttl, shapes_ttl, report_path = (
+        args.normative_ttl,
+        args.projection_ttl,
+        args.shapes_ttl,
+        args.report_path,
+    )
+
+    normative_text = Path(normative_ttl).read_text(encoding="utf-8")
+    projection_text = Path(projection_ttl).read_text(encoding="utf-8")
+    shapes_text = Path(shapes_ttl).read_text(encoding="utf-8")
+
+    started = time.perf_counter()
+    ds = holonic.HolonicDataset(build_backend(args))
 
     ds.add_holon(NORMATIVE_HOLON, "Pump system, normative graph", holon_type="cga:DataHolon")
-    ds.add_interior(NORMATIVE_HOLON, open(normative_ttl).read())
-    ds.add_boundary(NORMATIVE_HOLON, open(shapes_ttl).read())
+    ds.add_interior(NORMATIVE_HOLON, normative_text)
+    ds.add_boundary(NORMATIVE_HOLON, shapes_text)
 
     ds.add_holon(PROJECTION_HOLON, "Pump system, projection graph", holon_type="cga:DataHolon")
-    ds.add_interior(PROJECTION_HOLON, open(projection_ttl).read())
+    ds.add_interior(PROJECTION_HOLON, projection_text)
 
     normative_result = ds.validate_membrane(NORMATIVE_HOLON)
     projection_result = ds.validate_membrane(PROJECTION_HOLON)
 
-    def summary(result):
-        severities = Counter(u.severity for u in result.untargeted)
-        return (
-            f"conforms = {result.conforms}, health = {result.health.value}, "
-            f"violations = {len(result.violations)}, warnings = {len(result.warnings)}, "
-            f"untargeted nodes = {len(result.untargeted)} "
-            f"({', '.join(f'{n} at {s}' for s, n in sorted(severities.items())) or 'none'})"
-        )
+    elapsed = time.perf_counter() - started
 
+    n_triples, n_typed = graph_size(normative_text)
+    p_triples, p_typed = graph_size(projection_text)
+    header = "| | |\n|---|---|"
     lines = [
-        "# Step 7 holon load, rdflib backend\n",
-        f"holonic {metadata.version('holonic')}, commit `{holonic_commit()}`.\n",
-        f"Normative holon `{NORMATIVE_HOLON}`: {summary(normative_result)}\n",
-        f"Projection holon `{PROJECTION_HOLON}`: {summary(projection_result)}\n",
-        "## Normative holon membrane result\n",
-        f"```\n{normative_result.summary()}\n```\n",
-        "## Projection holon membrane result\n",
-        f"```\n{projection_result.summary()}\n```\n",
+        f"# Step 7 holon load, {args.backend} backend\n",
+        f"holonic commit `{holonic_commit()}`. Inputs: `{normative_ttl}` ({n_triples} triples, "
+        f"{n_typed} typed subjects), `{projection_ttl}` ({p_triples} triples, {p_typed} typed "
+        f"subjects), boundary `{shapes_ttl}`. Load and validate took {elapsed:.2f} s (one run).\n",
+        "This report gives counts. The full `MembraneResult` for each holon, with one "
+        "untargeted-node entry per typed interior node, is written by rerunning this script "
+        "with `--full-result <path>` (see `spike/holons/BACKENDS.md`); it is not committed.\n",
+        f"## Normative holon `{NORMATIVE_HOLON}`\n",
+        header,
+        summarize(normative_result) + "\n",
+        f"## Projection holon `{PROJECTION_HOLON}`\n",
+        header,
+        summarize(projection_result) + "\n",
+        f"Projection report text: `{projection_result.report_text}`\n",
         "## Holarchy summary\n",
         f"```\n{ds.holarchy_summary()}\n```\n",
     ]
-    with open(report_path, "w") as f:
-        f.write("\n".join(lines))
+    Path(report_path).write_text("\n".join(lines), encoding="utf-8")
+    if args.full_result:
+        Path(args.full_result).write_text(
+            f"{normative_result!r}\n\n{projection_result!r}\n", encoding="utf-8"
+        )
 
-    print(f"normative: {summary(normative_result)}")
-    print(f"projection: {summary(projection_result)}")
+    print(f"normative: {summary_line(normative_result)}")
+    print(f"projection: {summary_line(projection_result)}")
     print(f"report -> {report_path}")
 
 

@@ -52,7 +52,7 @@ venv at `/tmp/spike1-venv/`, Python 3.12.3.
 
 holonic's commit here (`d8d1758752827c35fc6781e89e01557b6e5e1825`) is the one this brief specifies
 and matches the "first reviewed" commit in decision 0003, not the `25d1c84` commit that decision
-pins for the Weft package proper. `d8d1758` predates the untargeted-node report
+then pinned for the Weft package proper (decision 0003 now pins `067f5ea`). `d8d1758` predates the untargeted-node report
 ([zwelz3/holonic#54](https://github.com/zwelz3/holonic/pull/54)); step 7 was re-run on a later
 commit (below).
 
@@ -69,5 +69,54 @@ review of [zwelz3/weft#8](https://github.com/zwelz3/weft/pull/8) in a different 
   [zwelz3/holonic#56](https://github.com/zwelz3/holonic/pull/56).
 
 Regenerated in this environment, the step 3 graph `spike/normative/output/pump-system.ttl` is
-byte-identical to the committed file, and the step 5 OWL export and step 6 shapes are
-graph-isomorphic to theirs.
+byte-identical to the file spike 1 committed, and the step 5 OWL export and step 6 shapes are
+graph-isomorphic to theirs. Spike 2 later extended the model and regenerated the step 3 graph, the
+step 5 export, the step 6 shapes, and the step 7 report (the sections below and the "Spike 2
+results" part of `spike/RESULTS.md`); spike 1's model remains as `spike/model/variants/baseline/`.
+
+## Spike 2 step 1: holonic for the holon reports
+
+The committed `spike/holons/rdflib-report.md` and `spike/holons/fuseki-report.md` were generated
+with holonic installed from `git+https://github.com/zwelz3/holonic@067f5ea`
+(`067f5ea2bdeeb2f7415593def90188b213d029f3`, the merge of zwelz3/holonic#56 on `main`), rdflib
+7.6.0, pyshacl 0.40.2, and aiohttp 3.14.5 (which holonic's `FusekiBackend` imports), on Python
+3.12.3. `25d1c84`, the commit decision 0003 pinned before it moved to `067f5ea`, gives the same untargeted
+counts and health on the same graph. `spike/holons/BACKENDS.md` records the Fuseki runtime.
+
+## Spike 2 step 4: the Python bindings
+
+The toolkit's `sysmlv2-py` crate, built with maturin at the same pinned commit
+(`821221767c3c56cb1ebe7da22666197a47c9c645`), from a clone of the toolkit repository at that
+commit:
+
+```
+cd crates/sysmlv2-py && maturin build --release -o <wheel-dir>
+pip install <wheel-dir>/sysmlv2-0.10.2-cp39-abi3-manylinux_2_39_x86_64.whl
+```
+
+Rust toolchain: `rustc 1.99.0 (b940084d7 2026-09-28)`, installed with rustup (`--profile minimal`,
+no shell-profile modification, since this environment's home directory is read-only); `maturin
+1.15.0`. The build needed no changes to the toolkit source and produced one wheel, `sysmlv2-py`'s
+`cdylib`, against CPython 3.12's `abi3-py3.9` ABI.
+
+### id scheme 3 is not reachable through the bindings
+
+M1 and M2 for id scheme 3 (`IDS.md`'s `GraphFormat::CanonicalV3`) do not run. The bindings build
+cleanly (the brief's "if the bindings cannot be built" case does not apply), but
+`crates/sysmlv2-py/src/lib.rs` wraps no graph-format selector. It exposes four `Session`
+constructors: `from_files` and `from_sources` (both reach `TSession::from_sources_with_library`,
+which passes `GraphFormat::LegacyV2`), `from_interchange_json` (`TSession::from_interchange_json_with_library`,
+which lifts the JSON to text and builds with `GraphFormat::LegacyV2`), and `from_compact_cbor`
+(`TSession::from_compact_cbor_with_library`, which takes the graph format named in the CBOR
+payload's header). `from_compact_cbor` can therefore open a payload some other client encoded under
+scheme 3, but no binding produces a scheme-3 model from textual notation.
+`Session::from_sources_with_graph_format` is in `sysmlv2-transform` and `Model::with_graph_format`
+in `sysmlv2-model`, below the Python binding; `IDS.md` already says the opt-in is "currently
+exposed through the Rust APIs", and this spike confirms that the Python binding adds no exposure of
+its own. `spike/ids/probe_scheme3.py` searches the binding crate's source for `graph_format`,
+`GraphFormat`, and `canonical` and finds none. `spike/ids/test_probe_scheme3.py` repeats that
+search against the toolkit checkout named by the `WEFT_TOOLKIT_SRC` environment variable (it skips
+when the variable is unset), and checks the installed wheel's constructor names. Run against a
+checkout of a later release, it fails if that release's binding crate mentions a graph-format API,
+which is the cue to run M1 and M2 for scheme 3. This narrows OQ2 further than spike 1 did: at this
+release, neither the CLI nor the Python bindings can build a scheme-3 model from textual notation.

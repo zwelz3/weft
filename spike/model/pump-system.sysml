@@ -6,8 +6,17 @@
 // (step 5); this package holds the usages.
 package PumpSystemModel {
 	private import PumpLibrary::*;
+	private import StandInProfile::*;
 
 	part <'CMP-SYS'> pumpSystemUnderTest : PumpSystem;
+
+	// Spike 2 step 2: a realized connection, typed by the individual
+	// interface def ControllerSensorLink (decision 0006).
+	#Interface individual interface controllerSensorLink : ControllerSensorLink;
+
+	// Spike 2 step 2: the two-valued and project-declared bearer cases.
+	part <'CMP-EMBD'> embeddedControllerUnderTest : EmbeddedController;
+	part <'CMP-3RD'> thirdPartyModuleUnderTest : ThirdPartyModule;
 
 	verification pumpSystemAcceptanceTest : PumpSystemAcceptance {
 		subject testSystem : PumpSystem = pumpSystemUnderTest;
