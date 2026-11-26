@@ -6,6 +6,8 @@ This document states what Weft emits from a model: the IRIs it mints, the triple
 
 ## IRI minting
 
+Decision 0009 replaces the spike's single base: standard-library elements keep OMG's identifiers, and each project and library package mints under its own configured base. The `weft.ghostsystems.ai` IRIs below are the spike's and are not part of the contract. Open questions OQ15 (projection namespace) and OQ16 (keys that hold both references and literals) are settled before 1.0 ([docs/plans/release-1.0.md](plans/release-1.0.md)).
+
 Elements are minted under a namespace that the project's configuration names (`spike/namespace.toml` in the spike), and Weft never invents a base on a project's behalf (AGENTS.md rule 4).
 
 Two patterns, chosen per element kind:

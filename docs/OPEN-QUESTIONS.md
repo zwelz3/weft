@@ -23,6 +23,9 @@ Spike 2 ([spike/RESULTS.md](../spike/RESULTS.md), step 4) built the toolkit's Py
 
 Undecided: whether the sidecar map suffices once thread links to `satisfy` claims are keyed by requirement and satisfying element rather than by toolkit id, or whether the upstream identity issue ([docs/outreach/sysml-toolkit-rename-stable-identity.md](outreach/sysml-toolkit-rename-stable-identity.md)) becomes a blocker; and how Weft fixes the source names it passes to the toolkit.
 
+
+The 2026-11-26 decision brief (item C1) chose to identify requirements by declared short name (decision 0008), `satisfy` claims by their two ends, and other linked elements through a thin sidecar map; the challenge is tracked in [zwelz3/weft#12](https://github.com/zwelz3/weft/issues/12).
+
 ## OQ3. Versions and holons
 
 Each ref (a branch head or a baseline) is a holon whose interior holds that version's normative graph. Element IRIs are stable across version holons, so the IRI identifies the element over its lifetime and the named graph identifies its state at one version. A query that does not scope by graph sees every version's statements at once; thread queries therefore go through a helper that requires a version.
@@ -87,6 +90,9 @@ Current leaning is that Kotar's graphical edits reach git as changes to textual 
 
 A tool that keeps its own store and does not commit text would still need tier 2, so the question stays open for other adopters.
 
+
+The check is assigned to the adopter in [zwelz3/weft#13](https://github.com/zwelz3/weft/issues/13), blocked on the Kotar container release.
+
 ## OQ12. Links from requirements to source passages
 
 Deferred. The initial adopter supplies requirement text in the prompt to the agent, and under AGENTS.md rule 2 the prompt is not a record, so a requirement's provenance is the commit that added it and the review that approved it.
@@ -104,3 +110,28 @@ The leaning, when the question is taken up, is the passage resource, because it 
 The profile brief stores issue keys in the model and resolves them to IRIs, which supports a traceability matrix that lists keys. Reports that use an issue's state (status, resolution, assignee) need data held in Jira or GitLab. Decision 0001 requires the core to work without a server, and AGENTS.md rule 9 forbids network access at validation time. The initial adopter records links only, so Weft reads issue systems and never writes to them; creating issues is a candidate agent tool for other adopters.
 
 Current leaning is an adapter per issue system that runs as its own step, in CI or on demand, and writes issue state into a source holon with the time of synchronization in its context graph. Validation and report generation read only that holon, and a report states the synchronization time it reflects. Open is whether the synchronized state is committed to git or kept as a build artifact; committing it makes reports reproducible from a checkout, and keeping it as an artifact keeps issue data out of the model's history.
+
+## OQ14. Flexo, Kotar, and the long-term architecture
+
+Decision 0001 makes git the record and Flexo MMS an optional one-way mirror (tier 1). The adopter edits in Starforge Kotar, whose support repository describes a browser workspace that commits textual notation to GitLab, with a remote Flexo marked optional (OQ11). Kotar therefore offers a second path from tools to git that does not pass through Flexo, and the two paths imply different long-term architectures. In one, Flexo is the shared query and integration layer that tools write through; in the other, git stays the only integration point and Flexo is a read mirror at most.
+
+Open is which architecture Weft commits to, and what that means for tier 1 and tier 2 in decision 0001. Two drafted upstream reports wait on the answer and are recorded as to be filed: [docs/outreach/flexo-sysmlv2-rdf.md](outreach/flexo-sysmlv2-rdf.md) and [docs/outreach/sysml-toolkit-rename-stable-identity.md](outreach/sysml-toolkit-rename-stable-identity.md). The second gains the identity evidence in [zwelz3/weft#12](https://github.com/zwelz3/weft/issues/12) before it is filed.
+
+## OQ15. Versioning of the projection vocabulary
+
+Spike 1's projection terms live under a namespace that contains the contract version (`thread/0.1.0/`), so every contract version renames every term, which is a data migration for every user (AGENTS.md rule 3). `proj:satisfiedBy` is declared with range `proj:Component`, while SysML lets any feature satisfy a requirement, and the spike's model already has satisfiers that are not components.
+
+Current leaning, chosen in the 2026-11-26 decision brief: an unversioned namespace whose ontology carries `owl:versionIRI`, and `proj:Element` as the range of `proj:satisfiedBy`. The question stays open because it blocks the 1.0 release ([docs/plans/release-1.0.md](plans/release-1.0.md)), and the namespace's domain depends on decision 0009's open choice of a domain for Weft's own vocabulary.
+
+## OQ16. Properties whose JSON key holds both references and literals
+
+The toolkit's JSON uses one key for different relations in different metaclasses; `value` holds a reference to an expression in a `FeatureValue` and a literal in a `LiteralString` or `LiteralInteger`. Spike 1's contract emitted one IRI, `tk:value`, as both an object property and a datatype property. OWL 2 keeps the two property kinds disjoint, and the OWL API reports the overlap as illegal punning ([IllegalPunning.java](https://github.com/owlcs/owlapi/blob/version5/api/src/main/java/org/semanticweb/owlapi/profiles/violations/IllegalPunning.java)); a rule-based reasoner such as owlrl 7.6.2 accepts it silently, so only DL tooling catches the problem.
+
+Practice in established vocabularies, surveyed for the 2026-11-26 decision brief (item C3):
+
+- Vocabularies that stay within OWL DL split one concept into a named object property and a named datatype property: SOSA's `hasResult` and `hasSimpleResult`, Wikibase's `ps:` and `psv:` predicates, and OBI's `has value specification` (OBI_0001938) and `has specified value` (OBI_0002135).
+- Vocabularies that keep a single untyped property give up OWL DL and enforce ranges elsewhere: QUDT's `qudt:value` is an `rdf:Property` constrained per class in SHACL, and OMG's SysML v2 API JSON-LD contexts map `value` to one term, `@id`-typed for `FeatureValue` and literal-typed for the literal metaclasses.
+- schema.org declares `Text` a class and every mixed property an object property, which its own documentation calls an approximation.
+- No surveyed vocabulary uses one IRI per (metaclass, property) pair.
+
+Current leaning, chosen in the decision brief and supported by the survey: split each mixed key by range kind into one object property and one datatype property, named `valueRef` and `valueLiteral` for `value` and by the same pattern for any other mixed key. Marking both names, rather than keeping a bare `value` for the literal as OBI and PROV do, avoids silently narrowing the meaning of the draft's `tk:value` for anyone who authored against it. The question stays open because property IRIs are part of the contract that 1.0 fixes ([docs/plans/release-1.0.md](plans/release-1.0.md)) and because it is on the ontologist's review list.
