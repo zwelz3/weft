@@ -4704,8 +4704,8 @@
    "edited_kept_but_reassigned": 0,
    "untouched_kept_but_reassigned": 4,
    "untouched_changed_by_unnamed_ancestor": {
-    "SatisfyRequirementUsage": 120,
-    "None": 2
+    "None": 2,
+    "SatisfyRequirementUsage": 120
    }
   },
   {
@@ -4721,8 +4721,8 @@
    "edited_kept_but_reassigned": 3,
    "untouched_kept_but_reassigned": 4,
    "untouched_changed_by_unnamed_ancestor": {
-    "SatisfyRequirementUsage": 120,
-    "None": 2
+    "None": 2,
+    "SatisfyRequirementUsage": 120
    }
   },
   {
@@ -4766,8 +4766,8 @@
    "edited_kept_but_reassigned": 0,
    "untouched_kept_but_reassigned": 5,
    "untouched_changed_by_unnamed_ancestor": {
-    "SatisfyRequirementUsage": 120,
-    "None": 1
+    "None": 1,
+    "SatisfyRequirementUsage": 120
    }
   }
  ]

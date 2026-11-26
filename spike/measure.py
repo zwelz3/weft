@@ -234,7 +234,7 @@ def m1(toolkit, lib, out_dir):
                 "edited_kept_but_reassigned": len(reassigned & edited),
                 "untouched_kept_but_reassigned": len(reassigned & untouched),
                 "untouched_changed_by_unnamed_ancestor": dict(
-                    Counter(str(nearest_unnamed_kind(by_id, i)) for i in changed_untouched)
+                    sorted(Counter(str(nearest_unnamed_kind(by_id, i)) for i in changed_untouched).items())
                 ),
             }
         )
@@ -330,9 +330,7 @@ def m2(toolkit, lib, out_dir):
             "a_ids": len(ids_a),
             "b_ids": len(ids_b),
             "shared": len(shared),
-            "shared_by_document": dict(
-                Counter(document_of(by_id, i) for i in shared)
-            ),
+            "shared_by_document": dict(sorted(Counter(document_of(by_id, i) for i in shared).items())),
             "a_sha256": sha256(out_a),
             "b_sha256": sha256(out_b),
             "shared_ids": sorted(shared),
