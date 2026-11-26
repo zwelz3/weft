@@ -189,26 +189,41 @@ so no extra derivation work was needed there (AGENTS.md rule 5 already holds on 
 
 `spike/projection/full-graph-queries/` has the five thread queries rewritten against the full
 normative graph (`spike/normative/output/pump-system.ttl`), inlining the `construct-*.rq` walks
-spike 1 deferred writing out. `spike/measure.py`'s `m5` runs both query sets, asserts row-for-row
-result equality (including `requirement-satisfied-by.rq`'s verdict column, attached by the same
-`sysmlv2 verify` text match `spike/projection/project.py` uses, since verdict is not itself a graph
-triple), and reports per-query stats. `spike/projection/test_m5_full_graph.py` is the regression
-fence; all rows match.
+spike 1 deferred writing out. `spike/measure.py`'s `m5` runs both query sets, compares the result
+sets of rows, and writes per-query stats to `<out-dir>/m5-full-graph.md` (no tracked file is
+written). `spike/projection/test_m5_full_graph.py` is the regression fence; all five comparisons
+are equal.
 
-| Query | Projection (lines / triples / path steps / ms) | Full graph (lines / triples / path steps / ms) | Rows | Equal |
+| Query | Projection (lines / triples / path steps / ms) | Full graph (lines / triples / path steps / ms) | Triple patterns, full minus projection | Rows | Equal |
 |---|---|---|---|---|---|
-| `orphan-components.rq` | 11 / 4 / 0 / 0.78 | 18 / 10 / 0 / 1.72 | 3 | yes |
-| `requirement-satisfied-by.rq` | 11 / 6 / 0 / 0.69 | 11 / 5 / 0 / 0.54 | 6 | yes |
-| `requirement-verified-by.rq` | 8 / 3 / 0 / 0.15 | 12 / 6 / 0 / 0.20 | 2 | yes |
-| `unsatisfied-requirements.rq` | 11 / 4 / 0 / 0.57 | 12 / 4 / 0 / 0.62 | 0 | yes |
-| `unverified-requirements.rq` | 8 / 3 / 0 / 0.41 | 15 / 7 / 0 / 0.74 | 4 | yes |
+| `orphan-components.rq` | 11 / 4 / 0 / 0.78 | 18 / 10 / 0 / 1.72 | +6 | 3 | yes |
+| `requirement-satisfied-by.rq` | 11 / 6 / 0 / 0.69 | 11 / 5 / 0 / 0.54 | -1 | 6 | yes |
+| `requirement-verified-by.rq` | 8 / 3 / 0 / 0.15 | 12 / 6 / 0 / 0.20 | +3 | 2 | yes |
+| `unsatisfied-requirements.rq` | 11 / 4 / 0 / 0.57 | 12 / 4 / 0 / 0.62 | 0 | 0 | yes |
+| `unverified-requirements.rq` | 8 / 3 / 0 / 0.41 | 15 / 7 / 0 / 0.74 | +4 | 4 | yes |
 
-Every full-graph query needed more triple patterns than its projection equivalent (the multi-hop
-walk OQ10 expected), but none needed a property-path operator: each `proj:` term resolves through a
-short, fixed chain of named toolkit properties, not a variable-length path. Run time is sub-2 ms on
-both graphs on this model's size (630 elements); the gap is a small, constant number of extra joins,
-not a different order of magnitude. This answers OQ10's deferred question: the projection's size
-saving on this model is 2 to 7 fewer triple patterns per query, not an asymptotic one.
+Run times are one execution per query, with no warm-up or repetition. They do not support a
+comparison between the two graphs: a later check that ran each query 51 times in another session
+gave medians from 0.51 to 2.81 ms on the projection and from 0.88 to 6.43 ms on the full graph, with
+the full-graph `orphan-components.rq` the slowest. Those repeated runs are not committed.
+
+Three of the five full-graph queries needed more triple patterns than their projection
+equivalents (3, 4, and 6 more: the usage-to-definition and verification-membership walks the
+projection flattens). `unsatisfied-requirements.rq` needed the same number, and
+`requirement-satisfied-by.rq` needed one fewer, because the projected query's `OPTIONAL { ?claim
+proj:verdict ?verdict }` has no counterpart in the graph and `m5` attaches the verdict outside the
+query (below). None
+needed a property-path operator: each `proj:` term resolves through a short, fixed chain of named
+toolkit properties, not a variable-length path. This answers OQ10's deferred question for this
+model (630 typed elements): the projection saves between -1 and 6 triple patterns per query, a
+small, fixed number of joins rather than an asymptotic difference.
+
+Three limits on the equality column. Equality compares sets of rows, so it does not check row order
+or duplicate rows. `unsatisfied-requirements.rq` returns 0 rows on both graphs, so its equality is
+vacuous on this model. For `requirement-satisfied-by.rq`, the verdict column is not a graph triple:
+`m5` attaches it to the full-graph rows by the same `sysmlv2 verify` text match
+`spike/projection/project.py` uses for the projection, so the verdict column agrees by construction
+and the comparison is independent evidence for the other three columns only.
 
 ## Step 4 (§4). Id scheme 3 through the Python bindings
 

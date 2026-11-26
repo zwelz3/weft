@@ -271,7 +271,11 @@ def m5(out_dir):
         out_path = out_dir / f"m5-{rq.stem}-full-graph-results.txt"
         out_path.write_text("\n".join(sorted(" | ".join(r) for r in full_rows)) + "\n")
 
-    report_lines = ["# Spike 2 step 3: M5 against the full normative graph\n"]
+    report_lines = [
+        "# Spike 2 step 3: M5 against the full normative graph\n",
+        "Run times are one execution per query, with no warm-up or repetition. Result equality "
+        "compares sets of rows.\n",
+    ]
     for row in rows:
         p, f = row["projection"], row["full_graph"]
         report_lines.append(f"## {row['query']}\n")
@@ -284,11 +288,9 @@ def m5(out_dir):
         report_lines.append(
             f"| full graph | {f['lines']} | {f['triple_patterns']} | {f['property_path_steps']} | {f['run_time_ms']} | {f['rows']} |\n"
         )
-    results_md = REPO / "spike/projection/results.md"
-    marker = "# Spike 2 step 3: M5 against the full normative graph"
-    existing = results_md.read_text()
-    base, _, _ = existing.partition(marker)
-    results_md.write_text(base.rstrip() + "\n\n" + "\n".join(report_lines))
+    # Written to out_dir, never to a tracked file, so running the test suite
+    # (spike/projection/test_m5_full_graph.py) leaves the checkout unchanged.
+    (out_dir / "m5-full-graph.md").write_text("\n".join(report_lines) + "\n", encoding="utf-8")
     return rows
 
 

@@ -18,10 +18,15 @@ REPO = Path(__file__).parent.parent.parent
 
 
 def test_full_graph_queries_match_projected_queries_row_for_row(tmp_path):
+    tracked = sorted((REPO / "spike").rglob("*.md"))
+    before = {p: p.read_bytes() for p in tracked}
     rows = measure.m5(tmp_path)
     assert len(rows) == 5
     for row in rows:
         assert row["results_equal"] is True, f"{row['query']}: full-graph and projected results differ"
+    assert (tmp_path / "m5-full-graph.md").is_file()
+    # m5 writes its report to the output directory, not over a tracked file.
+    assert {p: p.read_bytes() for p in tracked} == before
 
 
 def test_every_full_graph_query_file_has_a_projected_counterpart():
