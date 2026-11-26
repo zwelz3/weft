@@ -15,7 +15,7 @@ Design, with a package skeleton. The repository holds decision records, open que
 | [0003](docs/decisions/0003-holonic-for-graph-organization.md) | holonic organizes the derived graphs, one holon per model version. |
 | [0004](docs/decisions/0004-python.md) | Python, 3.11 or later. |
 | [0005](docs/decisions/0005-component-stereotype.md) | Component is a role. A required, open `bearer` list records whether a material artifact bears it, the material entity carrying an information content entity's concretization does, or a project-declared kind does. Accepted 2026-10-08. |
-| [0006](docs/decisions/0006-interface-stereotype.md) | Interface applies to definitions and usages. Without `individual` they are specifications (directive information content entity). With `individual` they are realized connections (material entity) linked to the specification they specialize. Accepted 2026-10-08. |
+| [0006](docs/decisions/0006-interface-stereotype.md) | Interface applies to definitions and usages. Without `individual` they are specifications (prescriptive information content entity). With `individual` they are realized connections (material entity) linked to the specification they specialize, with no subclass axiom across the two. Accepted 2026-10-08, revised 2026-11-26. |
 | [0007](docs/decisions/0007-action-definition-stereotype.md) | The `action def` stereotype is named Process and aligns to BFO process, because CCO's Function is a disposition. Accepted 2026-10-08. |
 
 ## Open work
