@@ -7,12 +7,10 @@
 package PumpSystemModel {
 	private import PumpLibrary::*;
 
-	part <'CMP-SYS'> pumpSystemUnderTest : PumpSystem;
-
-	part def AuxiliaryPump :> Pump {
-		doc /* Spare pump kept for redundancy; extracted to its own definition by M1's extract edit. */
+	part def PumpSystemUnderTest :> PumpSystem {
+		attribute serialNumber : ScalarValues::String;
 	}
-	part auxiliaryPump : AuxiliaryPump;
+	part <'CMP-SYS'> pumpSystemUnderTest : PumpSystemUnderTest;
 
 	verification pumpSystemAcceptanceTest : PumpSystemAcceptance {
 		subject testSystem : PumpSystem = pumpSystemUnderTest;

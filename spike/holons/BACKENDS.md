@@ -13,6 +13,13 @@ own; this spike has one version of one model, so "per graph kind" rather than "p
 Both holons load and both membranes report `conforms = True`. The full report is
 `spike/holons/rdflib-report.md`.
 
+The step 7 run used holonic `d8d1758` (`spike/ENVIRONMENT.md`), which predates the untargeted-node
+report from [zwelz3/holonic#54](https://github.com/zwelz3/holonic/pull/54) (holonic issues #30 and
+#50) and the fixes in [zwelz3/holonic#56](https://github.com/zwelz3/holonic/pull/56). The committed
+report is from a re-run on holonic `067f5ea`, the merge of #56: the normative holon reports
+`conforms = True`, health `intact`, no violations or warnings, and 507 untargeted nodes at Info
+severity; the projection holon, which has no boundary, reports no untargeted nodes.
+
 ### A finding, not a clean pass
 
 The normative holon's `conforms = True` is not evidence that step 6's shapes validate the
@@ -29,8 +36,15 @@ Loading the normative graph with boundary shapes that actually target it needs a
 definitions to shapes stated over the toolkit's own class IRIs, which is a different mapping from
 step 5/6's export (that one is meant to validate exported instance data against exported classes,
 not the normative graph against the toolkit's raw metaclasses). This spike does not build that
-second mapping; it is a gap worth recording against OQ6, which already covers the related question
-of shapes that target nothing in a holon's interior (holonic's `cga:untargetedTypeSeverity`).
+second mapping; it is a gap recorded against OQ6, which already covers the related question of
+shapes that target nothing in a holon's interior (holonic's `cga:untargetedTypeSeverity`).
+
+On holonic `067f5ea` the vacuous pass is visible in the result: all 507 typed nodes of the
+normative graph are listed as untargeted. They are reported at Info, holonic's default, which does
+not lower membrane health, so `conforms` and health are unchanged from the `d8d1758` run. With
+`cga:untargetedTypeSeverity sh:Violation` added to the boundary, the same load reports health
+`compromised` and the 507 nodes at Violation, while `conforms` stays `True`, because `conforms`
+reflects the SHACL report alone (checked once by hand; `load_holons.py` does not set the severity).
 
 ## Fuseki backend
 
