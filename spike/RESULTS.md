@@ -64,17 +64,18 @@ Two patterns account for every changed or reassigned untouched id in the table:
   its membership chain past their ordinal.
 - An edit that adds or removes a member in `PumpSystemModel` above its six `satisfy` usages changes
   every id in those usages' ownership subtrees (120 ids) and 1 or 2 of the memberships that own
-  them, and hands the other 4 or 5 membership ids to different `satisfy` usages. The `satisfy` usages are positional
-  because, under `IDS.md`'s id-name rule, a `satisfy` usage takes the name of the requirement it
+  them, and hands the other 4 or 5 membership ids to different `satisfy` usages. The `satisfy`
+  usages are positional because, under `IDS.md`'s id-name rule, a `satisfy` usage takes the name of the requirement it
   references, and the requirement of that name precedes it in the same package; the later claimant
   of a name falls back to a positional segment. `move` shows the rule directly: once `EnclosureRating`
   leaves `PumpSystemModel`, the `satisfy EnclosureRating` usage takes over the requirement's former
   id, which is 1 of the 3 reassigned edited ids.
 
 `insert` shows no untouched churn because no positional element follows either of its insertion
-points; an insertion above a positional element behaves like `insert-above-anonymous`. `extract` keeps the id of the usage it retypes (its name is unchanged) and changes the
-ids of the body it moves into the new definition; its untouched churn comes from the new
-definition's membership, inserted above the `satisfy` usages.
+points; `IDS.md` states that an insertion disturbs positional later siblings, which is what
+`insert-above-anonymous` measures. `extract` keeps the id of the usage it retypes (its name is
+unchanged) and changes the ids of the body it moves into the new definition; its untouched churn
+comes from the new definition's membership, inserted above the `satisfy` usages.
 
 The thread links to `satisfy` claims: `proj:SatisfyClaim` is minted from the claim's element id
 (`docs/graph-contract.md`), so each of the three edits of the second kind changed the IRI of all six

@@ -387,7 +387,6 @@ def m3(toolkit, lib, out_dir):
 
 
 def m4(toolkit, lib, out_dir):
-    sys.path.insert(0, str(REPO / "spike/export"))
     library_json = out_dir / "m4-library.json"
     subprocess.run(
         [toolkit, "convert", "--lib", lib, "--to", "full-json",
