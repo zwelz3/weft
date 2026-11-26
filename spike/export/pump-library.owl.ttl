@@ -1,8 +1,6 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
-<https://weft.ghostsystems.ai/spike1/pump-library/class/Component> a owl:Class .
-
 <https://weft.ghostsystems.ai/spike1/pump-library/class/ControllerSensorLink> a owl:Class ;
     rdfs:subClassOf <https://weft.ghostsystems.ai/spike1/pump-library/class/DataLink> .
 
@@ -23,6 +21,10 @@
 <https://weft.ghostsystems.ai/spike1/pump-library/class/ThirdPartyModule> a owl:Class .
 
 <https://weft.ghostsystems.ai/spike1/pump-library/class/~PowerPort> a owl:Class .
+
+<https://weft.ghostsystems.ai/spike1/pump-library/property/Component_bearer> a owl:ObjectProperty ;
+    rdfs:domain <https://weft.ghostsystems.ai/spike1/pump-library/class/Component> ;
+    rdfs:range <https://weft.ghostsystems.ai/spike1/pump-library/class/BearerKind> .
 
 <https://weft.ghostsystems.ai/spike1/pump-library/property/Controller_dataPort> a owl:ObjectProperty ;
     rdfs:domain <https://weft.ghostsystems.ai/spike1/pump-library/class/Controller> ;
@@ -55,6 +57,10 @@
 <https://weft.ghostsystems.ai/spike1/pump-library/property/Pump_powerPort> a owl:ObjectProperty ;
     rdfs:domain <https://weft.ghostsystems.ai/spike1/pump-library/class/Pump> ;
     rdfs:range <https://weft.ghostsystems.ai/spike1/pump-library/class/PowerPort> .
+
+<https://weft.ghostsystems.ai/spike1/pump-library/class/BearerKind> a owl:Class .
+
+<https://weft.ghostsystems.ai/spike1/pump-library/class/Component> a owl:Class .
 
 <https://weft.ghostsystems.ai/spike1/pump-library/class/Enclosure> a owl:Class .
 

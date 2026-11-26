@@ -248,3 +248,28 @@ specification it realizes) is already an object property in the raw toolkit grap
 `Subclassification`'s `tk:general` is an IRI, not a literal (AGENTS.md rule 5 holds here with no
 extra derivation work), so `IndividualInterfaceLinkedToSpecificationShape` only has to assert the
 link resolves to another `InterfaceDefinition`.
+
+### M6 against the regenerated shapes
+
+The table at the top of this file is spike 1's run, against shapes derived from spike 1's model
+(`enum def BearerKind`, a single-valued `bearer`). Spike 2 regenerates `spike/shapes/shapes.ttl`
+from the extended model (`spike/RESULTS.md`, spike 2 step 2), where `bearer` is
+`BearerKind[1..*]`, so the bearer property shape has `sh:minCount 1` and no `sh:maxCount`.
+`python3 spike/shapes/validate.py spike/shapes/shapes.ttl spike/shapes/instances.ttl
+spike/shapes/instances.csv <out.md>` then reports 9 of 10 injected faults caught:
+
+| Row | Fault | Caught | Shape that reports the row |
+|---|---|---|---|
+| SENS-06 | duplicate_bearer | no | none |
+| CTRL-06 | duplicate_bearer | yes | `Controller_dataPort-shape` only |
+
+The other eight rows are caught as in spike 1. SENS-06 is not caught, which is correct under
+decision 0005: two distinct bearer values on one element are allowed, so the table's
+`duplicate_bearer` rows are no longer faults. CTRL-06 is still counted as caught, but only because
+`validate.py` counts a row as caught when any shape reports it, and the table gives no Controller
+row a `dataPort`, so every Controller row (CTRL-01 to CTRL-06) is reported by
+`Controller_dataPort-shape`. The same holds for the PumpSystem rows and `PumpSystem_dataLink-shape`,
+and for the Pump rows and `Pump_powerPort-shape`, in spike 1's run as well as this one, so the
+caught count overstates what the fault-specific shapes caught. This run does not rewrite the
+stand-in table or the count.
+

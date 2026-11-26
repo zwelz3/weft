@@ -55,3 +55,36 @@ def test_scalar_typed_feature_exports_no_object_property(tmp_path):
     g, coverage = _run(tmp_path, elements)
     assert len(list(g.subjects(RDF.type, OWL.ObjectProperty))) == 0
     assert "not an exported class" in coverage
+
+
+def test_attribute_def_exports_a_class_and_its_typed_attribute_a_property(tmp_path):
+    # Decision 0005's open `attribute def BearerKind` and the stereotype's
+    # `attribute bearer : BearerKind[1..*]`, which spike 2 adopted in place
+    # of spike 1's enum and untyped-keyword feature.
+    elements = [
+        {"@id": "bk", "@type": "AttributeDefinition", "declaredName": "BearerKind"},
+        {"@id": "comp", "@type": "MetadataDefinition", "declaredName": "Component"},
+        {
+            "@id": "fm",
+            "@type": "FeatureMembership",
+            "owningType": {"@id": "comp"},
+            "ownedMemberElement": {"@id": "bearer"},
+            "memberName": "bearer",
+        },
+        {"@id": "bearer", "@type": "AttributeUsage", "declaredName": "bearer", "type": [{"@id": "bk"}]},
+    ]
+    g, coverage = _run(tmp_path, elements)
+    assert {str(s) for s in g.subjects(RDF.type, OWL.Class)} == {BASE + "class/BearerKind", BASE + "class/Component"}
+    assert {str(s) for s in g.subjects(RDF.type, OWL.ObjectProperty)} == {BASE + "property/Component_bearer"}
+    assert "2 definitions declared in the model JSON, 2 exported" in coverage
+
+
+def test_unhandled_definition_metaclass_is_counted_as_declared_and_not_exported(tmp_path):
+    elements = [
+        {"@id": "a", "@type": "PartDefinition", "declaredName": "Named"},
+        {"@id": "o", "@type": "OccurrenceDefinition", "declaredName": "Happening"},
+    ]
+    g, coverage = _run(tmp_path, elements)
+    assert {str(s) for s in g.subjects(RDF.type, OWL.Class)} == {BASE + "class/Named"}
+    assert "2 definitions declared in the model JSON, 1 exported" in coverage
+    assert "| OccurrenceDefinition | Happening | metaclass not handled by this exporter |" in coverage

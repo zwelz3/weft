@@ -1,6 +1,6 @@
 # Step 7 holon load, fuseki backend
 
-holonic commit `067f5ea2bdeeb2f7415593def90188b213d029f3`. Inputs: `spike/normative/output/pump-system.ttl` (14928 triples, 630 typed subjects), `spike/projection/output.ttl` (52 triples, 19 typed subjects), boundary `spike/shapes/shapes.ttl`. Load and validate took 4.59 s (one run).
+holonic commit `067f5ea2bdeeb2f7415593def90188b213d029f3`. Inputs: `spike/normative/output/pump-system.ttl` (14928 triples, 630 typed subjects), `spike/projection/output.ttl` (52 triples, 19 typed subjects), boundary `spike/shapes/shapes.ttl`. Load and validate took 5.13 s (one run).
 
 This report gives counts. The full `MembraneResult` for each holon, with one untargeted-node entry per typed interior node, is written by rerunning this script with `--full-result <path>` (see `spike/holons/BACKENDS.md`); it is not committed.
 

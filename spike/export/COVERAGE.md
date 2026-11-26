@@ -1,9 +1,10 @@
 # Step 5 export coverage
 
-18 definitions declared, 18 exported as `owl:Class`.
+19 definitions declared in the model JSON, 19 exported as `owl:Class`.
 
 | Metaclass | Name | Exported as |
 |---|---|---|
+| AttributeDefinition | BearerKind | owl:Class |
 | MetadataDefinition | Component | owl:Class |
 | MetadataDefinition | Interface | owl:Class |
 | MetadataDefinition | Process | owl:Class |
@@ -22,6 +23,7 @@
 | RequirementDefinition | MaxPressureDef | owl:Class |
 | RequirementDefinition | ResponseTimeDef | owl:Class |
 | VerificationCaseDefinition | PumpSystemAcceptance | owl:Class |
+| FeatureMembership | Component.bearer | owl:ObjectProperty |
 | FeatureMembership | PumpSystem.pump | owl:ObjectProperty |
 | FeatureMembership | PumpSystem.controller | owl:ObjectProperty |
 | FeatureMembership | PumpSystem.sensor | owl:ObjectProperty |

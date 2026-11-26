@@ -60,6 +60,55 @@ def test_annotated_class_inherits_metadata_property_shape(tmp_path):
     assert plain_props == set()  # Plain carries no metadata, so it inherits nothing
 
 
+def test_declared_multiplicity_sets_the_property_shape_cardinality(tmp_path):
+    """Decision 0005's `bearer : BearerKind[1..*]` gives sh:minCount 1 and no
+    sh:maxCount, so a two-valued bearer conforms; a feature with no declared
+    multiplicity keeps exactly one."""
+    elements = [
+        {"@id": "bk", "@type": "AttributeDefinition", "declaredName": "BearerKind"},
+        {"@id": "comp", "@type": "MetadataDefinition", "declaredName": "Component"},
+        {
+            "@id": "fm",
+            "@type": "FeatureMembership",
+            "owningType": {"@id": "comp"},
+            "ownedMemberElement": {"@id": "bearer"},
+            "memberName": "bearer",
+        },
+        {
+            "@id": "bearer",
+            "@type": "AttributeUsage",
+            "declaredName": "bearer",
+            "type": [{"@id": "bk"}],
+            "multiplicity": {"@id": "mult"},
+        },
+        {"@id": "mult", "@type": "MultiplicityRange", "lowerBound": {"@id": "lo"}, "upperBound": {"@id": "hi"}},
+        {"@id": "lo", "@type": "LiteralInteger", "value": 1},
+        {"@id": "hi", "@type": "LiteralInfinity"},
+        {"@id": "part", "@type": "PartDefinition", "declaredName": "Part"},
+        {
+            "@id": "fm2",
+            "@type": "FeatureMembership",
+            "owningType": {"@id": "part"},
+            "ownedMemberElement": {"@id": "kind"},
+            "memberName": "kind",
+        },
+        {"@id": "kind", "@type": "AttributeUsage", "declaredName": "kind", "type": [{"@id": "bk"}]},
+    ]
+    json_path = tmp_path / "in.json"
+    json_path.write_text(json.dumps(elements))
+    out_ttl = tmp_path / "shapes.ttl"
+    sys.argv = ["shacl_export.py", str(json_path), BASE, str(out_ttl)]
+    shacl_export.main()
+    g = Graph().parse(out_ttl, format="turtle")
+
+    bearer_shape = URIRef(f"{BASE}property/Component_bearer-shape")
+    assert g.value(bearer_shape, SH.minCount).toPython() == 1
+    assert g.value(bearer_shape, SH.maxCount) is None
+    kind_shape = URIRef(f"{BASE}property/Part_kind-shape")
+    assert g.value(kind_shape, SH.minCount).toPython() == 1
+    assert g.value(kind_shape, SH.maxCount).toPython() == 1
+
+
 # Spike 2 step 2: non-vacuity for spike/shapes/normative-shapes.ttl (the
 # shape set whose sh:targetClass values are the toolkit's own class IRIs,
 # not the step 5/6 OWL export classes that BACKENDS.md found vacuous as the

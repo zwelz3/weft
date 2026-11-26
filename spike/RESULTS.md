@@ -135,8 +135,8 @@ graph has 630 typed subjects and 14,928 triples) and validates the same membrane
 backend. Both committed reports (`spike/holons/rdflib-report.md`, `spike/holons/fuseki-report.md`)
 were generated at holonic `067f5ea`, and the full `MembraneResult` reprs from the two backends are
 byte-identical: same `conforms` verdicts, same health, 0 violations, 0 warnings, 0 infos, and 630
-untargeted nodes for the normative holon on both. Over four runs each, rdflib took 1.42 to 1.95 s
-and Fuseki 4.01 to 4.63 s for the load-and-validate run. Spike 1's finding (the normative holon's
+untargeted nodes for the normative holon on both. Over five runs each, rdflib took 1.42 to 1.97 s
+and Fuseki 4.01 to 5.13 s for the load-and-validate run. Spike 1's finding (the normative holon's
 `conforms = True` is vacuous, because step 5/6's shapes target OWL export classes the normative
 graph's nodes are not instances of) holds identically on both backends, so it is a boundary
 problem, not a backend difference.
@@ -168,6 +168,19 @@ only), and the pump model gains one element per new case: `EmbeddedController` (
 `DataLink`) with its usage. `sysmlv2 check --strict --lib` passes on the extended model
 (`spike/model/CHECK.md`).
 
+Step 5's OWL export and step 6's shapes are regenerated from the extended model. Decision 0005's
+`attribute def BearerKind` is an `AttributeDefinition` and `bearer` an `AttributeUsage`, neither of
+which `spike/export/owl_export.py` handled, so the export had dropped the `BearerKind` class and the
+`Component_bearer` property while `spike/export/COVERAGE.md` still reported "18 declared, 18
+exported", because it counted declared definitions from the exporter's own list. Coverage now
+counts declared definitions from the model JSON (19), the exporter and `spike/shapes/shacl_export.py`
+handle both metaclasses (19 of 19 exported), and `shacl_export.py` reads a declared
+`MultiplicityRange`, so `bearer : BearerKind[1..*]` gives `sh:minCount 1` and no `sh:maxCount`.
+Spike 1's committed `spike/shapes/shapes.ttl` targeted `class/BearerKind` and
+`property/Component_bearer`, which the unregenerated export no longer produced; the regenerated
+file targets IRIs the export produces. On the stand-in instance table, the regenerated shapes catch
+9 of the 10 injected faults instead of 10 (`spike/shapes/FINDINGS.md`, spike 2 section).
+
 `spike/shapes/test_shacl_export.py` tests non-vacuity on the raw graph. For each of the three
 shapes, a node of the real pump-system normative graph meets the shape's SPARQL precondition (the
 MetadataUsage applies Component; the AttributeUsage is a BearerKind value; the InterfaceDefinition
@@ -176,7 +189,7 @@ focus node of a Violation from that shape. A synthetic node violating each shape
 triggers a Violation, and the shapes conform on the real model. Because the real model (not a
 synthetic fixture) is what conforms, and each shape's constraint is evaluated on it, this is the
 AGENTS.md rule 7 proof that the properties the shapes require at Violation severity are producible
-from `sysmlv2 check`-passing textual notation. 9 of 9 tests in the file pass.
+from `sysmlv2 check`-passing textual notation. 10 of 10 tests in the file pass.
 
 The toolkit stores a metadata feature's assigned value behind a FeatureValue expression tree (a
 `FeatureReferenceExpression`'s `tk:referent` for one value, an `OperatorExpression` with

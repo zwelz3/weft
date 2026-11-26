@@ -95,7 +95,7 @@ untargeted counts and health on the same graph (checked separately with that com
 | Projection holon `conforms` / health | `True` / intact (no boundary) | `True` / intact (no boundary) |
 | Violations / warnings / infos | 0 / 0 / 0 | 0 / 0 / 0 |
 | Full `MembraneResult` repr | byte-identical to Fuseki's | byte-identical to rdflib's |
-| Wall time for the load-and-validate run | 1.42 to 1.95 s over four runs | 4.01 to 4.63 s over four runs, each on a freshly started server (includes HTTP round trips to the dataset) |
+| Wall time for the load-and-validate run | 1.42 to 1.97 s over five runs | 4.01 to 5.13 s over five runs, each on a freshly started server (includes HTTP round trips to the dataset) |
 | Persistence | None (process memory) | None here (`--mem`), but Fuseki also supports a persistent TDB2 dataset that rdflib's in-memory graph has no counterpart for |
 | AGENTS.md tier | 0 (works offline) | 1 (needs a server; this section's addition) |
 
