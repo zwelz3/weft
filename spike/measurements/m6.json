@@ -1,0 +1,15 @@
+{
+ "conforms": false,
+ "results": 28,
+ "faults": 10,
+ "caught_by_own_shape": 8,
+ "caught_any_result": 9,
+ "clean_rows": 18,
+ "clean_rows_flagged": 10,
+ "clean_flag_properties": [
+  "Controller_dataPort",
+  "PumpSystem_dataLink",
+  "PumpSystem_powerIn",
+  "Pump_powerPort"
+ ]
+}

@@ -11,9 +11,11 @@ explicit, checked decision (AGENTS.md rule 5) instead of a JSON-LD @context
 guess.
 
 Usage: python3 convert.py <full.json> <project-key> <namespace.toml> <out.ttl>
+
+with SYSMLV2_TOOLKIT_SRC set to a sysml-toolkit source checkout at the
+commit decision 0002 pins (ranges.py reads its JSON Schema files).
 """
 import json
-import re
 import sys
 import tomllib
 from urllib.parse import quote
@@ -21,7 +23,7 @@ from urllib.parse import quote
 from rdflib import Graph, Namespace, URIRef, Literal, RDF, BNode
 from rdflib.collection import Collection
 
-from ranges import build_range_map
+from ranges import build_range_map, schema_path
 
 KERML_NS = "https://www.omg.org/spec/KerML/20250201/"
 SYSML_NS = "https://www.omg.org/spec/SysML/20250201/"
@@ -41,14 +43,22 @@ ORDERED_PROPERTIES = {"ownedRelationship"}
 
 SKIP_KEYS = {"@id", "@type", "elementId", "aliasIds"}
 
-KERML_CLASSES = set(json.load(open("/tmp/spike1-toolkit-src/spec-refs/KerML.schema.json"))["$defs"].keys())
-SYSML_CLASSES = set(json.load(open("/tmp/spike1-toolkit-src/spec-refs/SysML.schema.json"))["$defs"].keys())
+_SCHEMA_CLASSES = {}
+
+
+def schema_classes(name):
+    """Metaclass names declared in the toolkit's `<name>.schema.json`, read
+    once from the checkout SYSMLV2_TOOLKIT_SRC names (ranges.py)."""
+    if name not in _SCHEMA_CLASSES:
+        path = schema_path(f"{name}.schema.json")
+        _SCHEMA_CLASSES[name] = set(json.load(open(path, encoding="utf-8"))["$defs"].keys())
+    return _SCHEMA_CLASSES[name]
 
 
 def class_iri(metaclass):
-    if metaclass in SYSML_CLASSES:
+    if metaclass in schema_classes("SysML"):
         return URIRef(SYSML_NS + metaclass)
-    if metaclass in KERML_CLASSES:
+    if metaclass in schema_classes("KerML"):
         return URIRef(KERML_NS + metaclass)
     return URIRef(PROP["Unknown" + metaclass])
 

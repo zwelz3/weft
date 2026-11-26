@@ -1,6 +1,6 @@
 # 0005. Component as a role borne by a material artifact or carried by information
 
-- Status: accepted (revised 2026-10-08: open `bearer` list)
+- Status: accepted (revised 2026-10-08: open `bearer` list; revised 2026-11-26: concretization path)
 - Date: 2026-10-08
 
 ## Context
@@ -9,7 +9,7 @@ The profile brief ([docs/plans/profile-brief.md](../plans/profile-brief.md)) lis
 
 Being a component is not what a thing is. A pump is a material artifact whether or not it is installed in the system under design, and it is a component of that system only while it plays that part. BFO represents a part an entity plays, which it can lose without ceasing to exist, as a role ([BFO role](http://purl.obolibrary.org/obo/BFO_0000023)).
 
-BFO 2020 restricts what can bear a role. A role is a specifically dependent continuant and inheres only in an independent continuant. An information content entity is a generically dependent continuant ([BFO generically dependent continuant](http://purl.obolibrary.org/obo/BFO_0000031)), so it cannot bear a role directly. A software component bears its role through the material entity that concretizes it, such as the storage on which a build artifact is deployed.
+BFO 2020 restricts what can bear a role. A role is a specifically dependent continuant and inheres only in an independent continuant. An information content entity is a generically dependent continuant ([BFO generically dependent continuant](http://purl.obolibrary.org/obo/BFO_0000031)), so it cannot bear a role directly. A software component reaches its role in two steps. The information content entity is concretized by a specifically dependent continuant (for example a pattern in the storage on which a build artifact is deployed), which inheres in a material entity, and that material entity bears the role. BFO 2020 gives [is concretized by](http://purl.obolibrary.org/obo/BFO_0000058) a range of specifically dependent continuants and processes, and [bearer of](http://purl.obolibrary.org/obo/BFO_0000196) a domain of independent continuants, so no single entity both concretizes the information and bears the role.
 
 The buildability review ([docs/reviews/2026-10-08-buildability.md](../reviews/2026-10-08-buildability.md)) proposed this framing.
 
@@ -22,7 +22,7 @@ The stereotype requires one metadata feature, `bearer`, with multiplicity `[1..*
 | `bearer` | Instances of the exported class | Alignment axioms |
 |---|---|---|
 | `material` | Physical objects that bear the component role | Subclass of [CCO material artifact](https://www.commoncoreontologies.org/ont00000995), and of [bearer of](http://purl.obolibrary.org/obo/BFO_0000196) some component role |
-| `information` | Information content entities, such as a software module, whose concretizations bear the component role | Subclass of [CCO information content entity](https://www.commoncoreontologies.org/ont00000958), and of [is concretized by](http://purl.obolibrary.org/obo/BFO_0000058) some entity that is [bearer of](http://purl.obolibrary.org/obo/BFO_0000196) some component role |
+| `information` | Information content entities, such as a software module, whose concretizations inhere in a bearer of the component role | Subclass of [CCO information content entity](https://www.commoncoreontologies.org/ont00000958), and of [is concretized by](http://purl.obolibrary.org/obo/BFO_0000058) some entity that [inheres in](http://purl.obolibrary.org/obo/BFO_0000197) some entity that is [bearer of](http://purl.obolibrary.org/obo/BFO_0000196) some component role |
 
 The list is open. A project adds a value by declaring an attribute usage of type `BearerKind` in its own package, and adds one alignment axiom for it to its own alignment file. The value and its axiom are minted under the project's namespace (AGENTS.md rule 4). The list is not an enumeration, because sysml-toolkit 0.10.2 rejects an enumeration that specializes another (`validateDefinitionVariationSpecialization`), so an enumeration could not be extended outside the profile.
 

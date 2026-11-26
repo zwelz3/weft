@@ -6,12 +6,29 @@ object property's range before emitting it (AGENTS.md rule 5), rather than
 guessing from observed data.
 """
 import json
-import re
+import os
+from pathlib import Path
 
-SCHEMA_FILES = [
-    "/tmp/spike1-toolkit-src/spec-refs/KerML.schema.json",
-    "/tmp/spike1-toolkit-src/spec-refs/SysML.schema.json",
-]
+# The schema files live in a sysml-toolkit source checkout at the commit
+# decision 0002 pins. The checkout's location is given by the environment
+# variable SYSMLV2_TOOLKIT_SRC, so no machine-specific path is built in.
+TOOLKIT_SRC_ENV = "SYSMLV2_TOOLKIT_SRC"
+
+
+def schema_path(name):
+    """Path to `spec-refs/<name>` in the toolkit checkout named by
+    SYSMLV2_TOOLKIT_SRC."""
+    root = os.environ.get(TOOLKIT_SRC_ENV)
+    if not root:
+        raise SystemExit(
+            f"{TOOLKIT_SRC_ENV} is not set; point it at a sysml-toolkit source "
+            "checkout at the commit decision 0002 pins"
+        )
+    return Path(root) / "spec-refs" / name
+
+
+def schema_files():
+    return [schema_path("KerML.schema.json"), schema_path("SysML.schema.json")]
 
 
 def _range_from_node(node):
@@ -37,8 +54,8 @@ def build_range_map():
     by owning metaclass."""
     per_class = {}
     by_name = {}
-    for path in SCHEMA_FILES:
-        defs = json.load(open(path))["$defs"]
+    for path in schema_files():
+        defs = json.load(open(path, encoding="utf-8"))["$defs"]
         for cls, schema in defs.items():
             variants = schema.get("anyOf") or [schema]
             for variant in variants:

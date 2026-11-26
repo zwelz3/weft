@@ -12,8 +12,10 @@ release ships a working `sysmlv2` CLI binary with `convert --to full-json` for e
 derived properties and implied relationships, `check --strict`, `lint`, `verify`, and `describe`.
 The binary is an ELF 64-bit executable; no build step ran.
 
-A source clone of the toolkit at the same commit lives at `/tmp/spike1-toolkit-src/`, used only to
-read `IDS.md` for the id-derivation scheme. The toolkit vendors SysML-v2-Release as the submodule
+A source clone of the toolkit at the same commit lives at `/tmp/spike1-toolkit-src/`. It supplies
+`IDS.md`, the id-derivation scheme, and the JSON Schema files (`spec-refs/KerML.schema.json`,
+`spec-refs/SysML.schema.json`) that `spike/normative/ranges.py` and `spike/normative/convert.py`
+read; both scripts find the clone through the environment variable `SYSMLV2_TOOLKIT_SRC`. The toolkit vendors SysML-v2-Release as the submodule
 `spec-refs/SysML-v2-Release`, cloned separately for this spike (its remote is
 `https://github.com/Systems-Modeling/SysML-v2-Release`, not `Open-MBEE/SysML-v2-Release`, which
 does not exist) into `/tmp/spike1-sysml-release/`, checked out at `de1070ae8e79c21532b8004fc663d47b35d0e9fa`
@@ -31,9 +33,11 @@ the CLI offers" to the single scheme the CLI exposes.
 
 ## Public model
 
-`sysml/src/examples/Vehicle Example/SysML v2 Spec Annex A SimpleVehicleModel.sysml` and its sibling
-units (`VehicleDefinitions.sysml`, `VehicleUsages.sysml`, `VehicleIndividuals.sysml`) in the release
-clone, used as the public model required by step 2.
+`sysml/src/examples/Geometry Examples/SimpleQuadcopter.sysml` in the release clone, used for step
+3's second graph. The Annex A `SimpleVehicleModel.sysml` was tried first and rejected because
+`check --lib` reports errors against it; `spike/model/CHECK.md` records the reason and the other
+candidates. M2, like the other measurements, uses the pump model in `spike/model/` or artifacts
+derived from it.
 
 ## Python environment
 
@@ -48,7 +52,27 @@ venv at `/tmp/spike1-venv/`, Python 3.12.3.
 
 holonic's commit here (`d8d1758752827c35fc6781e89e01557b6e5e1825`) is the one this brief specifies
 and matches the "first reviewed" commit in decision 0003, not the `25d1c84` commit that decision
-pins for the Weft package proper. Step 7 notes where this matters.
+then pinned for the Weft package proper (decision 0003 now pins `067f5ea`). `d8d1758` predates the untargeted-node report
+([zwelz3/holonic#54](https://github.com/zwelz3/holonic/pull/54)); step 7 was re-run on a later
+commit (below).
+
+## Re-run for the review fixes
+
+The measurements in `spike/RESULTS.md` and the step 6 and step 7 reports were regenerated after the
+review of [zwelz3/weft#8](https://github.com/zwelz3/weft/pull/8) in a different environment:
+
+- sysml-toolkit built from source at `821221767c3c56cb1ebe7da22666197a47c9c645` (its
+  `rust-toolchain.toml` names Rust 1.97.1), not the prebuilt release binary;
+- SysML-v2-Release at `de1070ae8e79c21532b8004fc663d47b35d0e9fa`, the toolkit's submodule;
+- Python 3.12.3 with rdflib 7.6.0, pyshacl 0.40.1, pytest, and holonic 0.9.0.dev0 installed from
+  `git+https://github.com/zwelz3/holonic@067f5ea2bdeeb2f7415593def90188b213d029f3`, the merge of
+  [zwelz3/holonic#56](https://github.com/zwelz3/holonic/pull/56).
+
+Regenerated in this environment, the step 3 graph `spike/normative/output/pump-system.ttl` is
+byte-identical to the file spike 1 committed, and the step 5 OWL export and step 6 shapes are
+graph-isomorphic to theirs. Spike 2 later extended the model and regenerated the step 3 graph, the
+step 5 export, the step 6 shapes, and the step 7 report (the sections below and the "Spike 2
+results" part of `spike/RESULTS.md`); spike 1's model remains as `spike/model/variants/baseline/`.
 
 ## Spike 2 step 1: holonic for the holon reports
 
@@ -56,8 +80,8 @@ The committed `spike/holons/rdflib-report.md` and `spike/holons/fuseki-report.md
 with holonic installed from `git+https://github.com/zwelz3/holonic@067f5ea`
 (`067f5ea2bdeeb2f7415593def90188b213d029f3`, the merge of zwelz3/holonic#56 on `main`), rdflib
 7.6.0, pyshacl 0.40.2, and aiohttp 3.14.5 (which holonic's `FusekiBackend` imports), on Python
-3.12.3. Decision 0003's pin, `25d1c84`, gives the same untargeted counts and health on the same
-graph. `spike/holons/BACKENDS.md` records the Fuseki runtime.
+3.12.3. `25d1c84`, the commit decision 0003 pinned before it moved to `067f5ea`, gives the same untargeted
+counts and health on the same graph. `spike/holons/BACKENDS.md` records the Fuseki runtime.
 
 ## Spike 2 step 4: the Python bindings
 

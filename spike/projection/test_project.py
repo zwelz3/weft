@@ -47,3 +47,31 @@ def test_requirement_construct_excludes_elements_with_no_short_name(tmp_path):
     PROJ = Namespace("https://weft.ghostsystems.ai/thread/0.1.0/")
     subjects = {s for s in result.subjects(RDF.type, PROJ.Requirement)}
     assert subjects == {real}
+
+
+def _claim(g, claim, req, req_name, elem, elem_name):
+    g.add((claim, RDF.type, SYSML.SatisfyRequirementUsage))
+    g.add((claim, TK.satisfiedRequirement, req))
+    g.add((claim, TK.satisfyingFeature, elem))
+    g.add((req, TK.declaredName, Literal(req_name)))
+    g.add((elem, TK.declaredName, Literal(elem_name)))
+
+
+def test_two_satisfy_claims_on_one_requirement_each_get_their_own_verdict():
+    g = Graph()
+    req = URIRef("urn:test:req")
+    _claim(g, URIRef("urn:test:claim-pump"), req, "PowerDraw", URIRef("urn:test:pump"), "pump")
+    _claim(g, URIRef("urn:test:claim-ctrl"), req, "PowerDraw", URIRef("urn:test:ctrl"), "controller")
+    report = "\n".join(
+        [
+            "m.sysml:1:2  <anonymous> (SatisfyRequirementUsage, satisfies M::PowerDraw by sys.pump): satisfied",
+            "m.sysml:2:2  <anonymous> (SatisfyRequirementUsage, satisfies M::PowerDraw by sys.controller): violated",
+        ]
+    )
+    projection = Graph()
+    unmatched = project.attach_verdicts(g, projection, report)
+
+    PROJ = Namespace("https://weft.ghostsystems.ai/thread/0.1.0/")
+    assert unmatched == []
+    assert set(projection.objects(URIRef("urn:test:claim-pump"), PROJ.verdict)) == {Literal("satisfied")}
+    assert set(projection.objects(URIRef("urn:test:claim-ctrl"), PROJ.verdict)) == {Literal("violated")}

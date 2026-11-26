@@ -31,11 +31,6 @@ package PumpSystemModel {
 		subject controllerPart : Controller;
 	}
 
-	requirement <'REQ-005'> EnclosureRating {
-		doc /* The enclosure shall meet an IP65 ingress rating. */
-		subject enclosurePart : Enclosure;
-	}
-
 	requirement <'REQ-006'> StartupTime {
 		doc /* The system shall reach a ready state within 5 s of power-on. */
 		subject system : PumpSystem;

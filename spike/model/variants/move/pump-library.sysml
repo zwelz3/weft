@@ -25,6 +25,7 @@ library package PumpLibrary {
 		part <'CMP-ENCL'> enclosure : Enclosure;
 
 		port powerIn : PowerPort;
+		interface dataLink : DataLink;
 
 		perform action monitor : MonitorPressure;
 	}
@@ -32,7 +33,6 @@ library package PumpLibrary {
 	part def Pump {
 		@Component { bearer = BearerKind::material; }
 		port powerPort : PowerPort;
-		interface dataLink : DataLink;
 	}
 
 	part def Controller {
@@ -63,5 +63,10 @@ library package PumpLibrary {
 			verify requirement maxPressureVerdict : MaxPressureDef;
 			verify requirement responseTimeVerdict : ResponseTimeDef;
 		}
+	}
+
+	requirement <'REQ-005'> EnclosureRating {
+		doc /* The enclosure shall meet an IP65 ingress rating. */
+		subject enclosurePart : Enclosure;
 	}
 }

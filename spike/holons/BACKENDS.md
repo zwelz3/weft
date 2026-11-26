@@ -17,6 +17,15 @@ normative graph (507 typed subjects, 12,068 triples). Spike 2 regenerated it at 
 subjects, 14,928 triples, because step 2 extends the pump model), so it now carries holonic's
 `untargeted` count, which `d8d1758` did not report.
 
+The step 7 run used holonic `d8d1758` (`spike/ENVIRONMENT.md`), which predates the untargeted-node
+report from [zwelz3/holonic#54](https://github.com/zwelz3/holonic/pull/54) (holonic issues #30 and
+#50) and the fixes in [zwelz3/holonic#56](https://github.com/zwelz3/holonic/pull/56). Spike 1
+re-ran it on holonic `067f5ea`, the merge of #56, against spike 1's graph: the normative holon
+reported `conforms = True`, health `intact`, no violations or warnings, and 507 untargeted nodes at
+Info severity; the projection holon, which has no boundary, reported no untargeted nodes. The
+committed report, from spike 2's run on the extended graph, gives the same verdicts with 630
+untargeted nodes.
+
 ### A finding, not a clean pass
 
 The normative holon's `conforms = True` is not evidence that step 6's shapes validate the
@@ -33,8 +42,15 @@ Loading the normative graph with boundary shapes that actually target it needs a
 definitions to shapes stated over the toolkit's own class IRIs, which is a different mapping from
 step 5/6's export (that one is meant to validate exported instance data against exported classes,
 not the normative graph against the toolkit's raw metaclasses). This spike does not build that
-second mapping; it is a gap worth recording against OQ6, which already covers the related question
-of shapes that target nothing in a holon's interior (holonic's `cga:untargetedTypeSeverity`).
+second mapping; it is a gap recorded against OQ6, which already covers the related question of
+shapes that target nothing in a holon's interior (holonic's `cga:untargetedTypeSeverity`).
+
+On holonic `067f5ea` the vacuous pass is visible in the result: all 507 typed nodes of spike 1's
+normative graph are listed as untargeted (all 630 of the extended graph in spike 2's run). They are reported at Info, holonic's default, which does
+not lower membrane health, so `conforms` and health are unchanged from the `d8d1758` run. With
+`cga:untargetedTypeSeverity sh:Violation` added to the boundary, the same load reports health
+`compromised` and the untargeted nodes at Violation, while `conforms` stays `True`, because `conforms`
+reflects the SHACL report alone (checked once by hand; `load_holons.py` does not set the severity).
 
 ## Fuseki backend (spike 2, step 1)
 
@@ -82,8 +98,8 @@ python3 spike/holons/load_holons.py spike/normative/output/pump-system.ttl \
 Each report gives counts. Adding `--full-result <path>` writes each holon's full `MembraneResult`
 repr, whose untargeted list has one entry per typed interior node (about 130,000 characters for
 this graph); that output is not committed. The full results from the two backends were compared
-with `cmp` and are byte-identical. The holonic commit decision 0003 pins, `25d1c84`, gives the same
-untargeted counts and health on the same graph (checked separately with that commit installed).
+with `cmp` and are byte-identical. `25d1c84`, the holonic commit decision 0003 pinned before it moved to
+`067f5ea`, gives the same untargeted counts and health on the same graph (checked separately with that commit installed).
 
 ### Every difference between the two backends
 

@@ -11,6 +11,9 @@ Usage: python3 load_holons.py <normative.ttl> <projection.ttl> <shapes.ttl> <out
 The rdflib backend (default) is in-memory and needs nothing running. The
 Fuseki backend talks to an already-running, disposable Fuseki dataset; see
 BACKENDS.md for how spike 2 starts and stops one.
+
+Needs holonic at a commit that reports untargeted nodes (zwelz3/holonic#54,
+merged at 25d1c84); the report records the commit installed.
 """
 import argparse
 import json
@@ -49,6 +52,16 @@ def holonic_commit():
 def graph_size(ttl_text):
     g = Graph().parse(data=ttl_text, format="turtle")
     return len(g), len(set(g.subjects(RDF.type, None)))
+
+
+def summary_line(result):
+    severities = Counter(u.severity for u in result.untargeted)
+    return (
+        f"conforms = {result.conforms}, health = {result.health.value}, "
+        f"violations = {len(result.violations)}, warnings = {len(result.warnings)}, "
+        f"untargeted nodes = {len(result.untargeted)} "
+        f"({', '.join(f'{n} at {s}' for s, n in sorted(severities.items())) or 'none'})"
+    )
 
 
 def summarize(result):
@@ -137,7 +150,8 @@ def main():
             f"{normative_result!r}\n\n{projection_result!r}\n", encoding="utf-8"
         )
 
-    print(f"normative conforms={normative_result.conforms}; projection conforms={projection_result.conforms}")
+    print(f"normative: {summary_line(normative_result)}")
+    print(f"projection: {summary_line(projection_result)}")
     print(f"report -> {report_path}")
 
 

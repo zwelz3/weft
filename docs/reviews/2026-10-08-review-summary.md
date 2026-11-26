@@ -26,7 +26,7 @@ Secondary findings, each with its fix in MR1:
 
 ## 2. MR1: findings and small fixes
 
-Branch `review/buildability-2026-10-08`, filed as [zwelz3/weft#7](https://github.com/zwelz3/weft/pull/7) on top of the adopter branch ([zwelz3/weft#3](https://github.com/zwelz3/weft/pull/3)). Thirteen commits, authored without AI attribution: three for the review and the document fixes, one per gap closed, one adopting the license, and this record. An earlier filing split the same commits across two fork pull requests; those are closed in favor of this one.
+Branch `review/buildability-2026-10-08`, filed as [zwelz3/weft#7](https://github.com/zwelz3/weft/pull/7) on top of the adopter branch ([zwelz3/weft#3](https://github.com/zwelz3/weft/pull/3)). Its commits are authored without AI attribution: three for the review and the document fixes, one per gap closed, one adopting the license, this record, and later corrections. An earlier filing split the same commits across two fork pull requests; those are closed in favor of this one.
 
 ### Document fixes
 
@@ -45,12 +45,12 @@ Branch `review/buildability-2026-10-08`, filed as [zwelz3/weft#7](https://github
 
 ### Gap closures
 
-One commit per item, in the order the review gives. All eight items have landed.
+One commit per item, in the order the review gives. Items 1 to 5 and 7 have landed; item 6 is spike 1, filed as [zwelz3/weft#8](https://github.com/zwelz3/weft/pull/8), and item 8's check against live issue state is not written.
 
 | Item | Change | State |
 |---|---|---|
 | 1. License | Apache-2.0 `LICENSE` with copyright holder Zech Welz, a License section in README.md, and rule 13 in AGENTS.md requiring a compatibility check of every packaged dependency. Apache-2.0 was adopted on 2026-10-08; the earlier commit body calls it a proposal. | Landed |
-| 2. Pins | Decision 0002 states the toolkit commit `8212217` (release 0.10.2), the library commit `de1070a`, and the id scheme Weft consumes. Decision 0003 pins holonic `main` at `d8d1758` until 0.9.0. Every row of the STATUS.md versions table carries a hash. | Landed |
+| 2. Pins | Decision 0002 states the toolkit commit `8212217` (release 0.10.2), the library commit `de1070a`, and the id scheme Weft consumes. Decision 0003 pins holonic `main` until 0.9.0, at `067f5ea` since 2026-11-26 (first `d8d1758`, then `25d1c84`). Every row of the STATUS.md versions table carries a hash. | Landed |
 | 3. Package and CI | `pyproject.toml`, `src/weft/__init__.py`, `tests/test_package.py`, and `.github/workflows/ci.yml`. The workflow builds the `sysmlv2` abi3 wheel once per pinned toolkit commit, caches it by hash, and runs a test matrix on Ubuntu and Windows across Python 3.11 to 3.13. `tests/test_status.py` is an offline structural check of the STATUS.md open-work table. | Landed |
 | 4. Decisions 0005 to 0007 | Component as a role, with an open `bearer` list. Interface on definitions and usages, with the SysML `individual` keyword separating specifications from realized connections. The action-definition stereotype named Process, with the reason CCO's Function does not fit. Status: accepted, after review revised 0005 and 0006. | Landed |
 | 5. Thread queries | `queries/` with five SPARQL SELECT files derived from the traceability matrix and gap analysis, each stating its question, assumed projection terms, and expected columns. They are the specification for spike step 4 and are untested until the graph contract exists. | Landed |
@@ -68,7 +68,7 @@ Issue #2 defines spike 1. This section restates it as a test plan with the chang
 
 ### Changes to issue #2
 
-- Pin holonic `main` at `d8d1758`, not 0.8.0. Step 6 depends on the fixes in #30 and #50.
+- Pin holonic `main`, not 0.8.0, because step 6 depends on the fixes in #30 and #50. The review proposed `d8d1758`, which predates those fixes; decision 0003 pins `067f5ea`.
 - Name the graph contract as the primary deliverable.
 - Use a public model from SysML-v2-Release at commit `de1070a` for steps 1 to 5, so the spike starts before the adopter's component arrives. Steps 6 and 7 wait on the real component, instance table, and tickets from issue #1.
 - Take the five thread queries in step 4 from `queries/` (MR1 item 5), not from scratch.
@@ -77,7 +77,7 @@ Issue #2 defines spike 1. This section restates it as a test plan with the chang
 
 | Step | Work | Evidence produced |
 |---|---|---|
-| 1. Environment | Install the toolkit bindings at `8212217`, holonic at `d8d1758`, rdflib, pySHACL. Record the toolkit commit and Rust version. | `spike/ENVIRONMENT.md` |
+| 1. Environment | Install the toolkit bindings at `8212217`, holonic at the commit decision 0003 pins, rdflib, pySHACL. Record the toolkit commit and Rust version. | `spike/ENVIRONMENT.md` |
 | 2. Model | One component in textual notation with a stand-in profile of three stereotypes and a short name on every requirement. `check --strict` passes. | `spike/model/` |
 | 3. Normative graph | Toolkit JSON to RDF through a JSON-LD context. Requirements get IRIs minted from short names; everything else keeps derived ids. Record the ordered-property representation. | Draft of the element and relationship sections of the graph contract |
 | 4. Projection | The five queries from `queries/` in plain language, then the projection vocabulary and SPARQL CONSTRUCT queries that serve them. | Draft of the projection section of the graph contract |
@@ -102,13 +102,13 @@ If M1 shows acceptable churn, Weft needs only a thin sidecar map and the profile
 
 ### Results
 
-Spike 1 ran on branch `spike/1-graph-contract`. Details and method are in `spike/RESULTS.md`. The decision rule resolved to the first branch: churn is acceptable and Weft needs only a sidecar map. Step 7 ran on rdflib only; the Fuseki run is deferred because no plain HTTP Fuseki endpoint was available.
+Spike 1 ran on branch `spike/1-graph-contract`. Details and method are in `spike/RESULTS.md`. The decision rule is not resolved. M1 shows churn confined to the edited subtree for edits among named elements, and churn and id reassignment across every `satisfy` usage for an edit above them in their package; the rule does not define acceptable churn, so the choice between its two branches is left to the maintainer (`spike/RESULTS.md`, "Decision rule"). Step 7 ran on rdflib only; the Fuseki run is deferred because no plain HTTP Fuseki endpoint was available.
 
 | ID | Observed | Model | Toolkit commit | Open question change |
 |---|---|---|---|---|
-| M1 | Insert 0.0%, reorder 0.0%, move 1.0%, rename 5.7%, extract 24.1% of 507 ids changed | pump model, 503 elements | `8212217` (0.10.2) | OQ2: sidecar map suffices, upstream issue not a blocker |
-| M2 | 28 shared ids of 507, all from the identically named and identical profile file; none from the renamed packages | pump model, 503 elements | `8212217` (0.10.2) | OQ2: collision is a source-naming question |
-| M3 | Comments dropped, formatting rewritten; no construct, name, or relationship lost | pump model, 503 elements | `8212217` (0.10.2) | OQ9: tier 2 needs comment preservation |
-| M4 | 16 of 16 definitions to classes; 8 of 10 nested features to object properties (2 scalar) | pump model, 503 elements | `8212217` (0.10.2) | OQ4: confirmed as stated |
-| M5 | Five queries at two to four triple patterns on the projection; normative versions not written | pump model, 503 elements | `8212217` (0.10.2) | OQ10: saving unmeasured |
-| M6 | 10 of 10 injected faults caught on a stand-in table; vacuous pass as a normative-graph boundary | pump model, 503 elements | `8212217` (0.10.2) | OQ6: normative boundary needs its own shapes |
+| M1 | Rename, insert among named members, move within a package, reorder: no untouched id changed. Insert above `satisfy` usages, move to another package, `refactor extract`: 121 or 122 untouched ids changed and 4 or 5 reassigned to other elements | pump model, 507 elements | `8212217` (0.10.2) | OQ2: evidence recorded; sidecar map versus upstream blocker left open |
+| M2 | Same source names: 28 of 507 ids shared with renamed packages, 507 of 507 with identical ones. Root-qualified or absolute source names: 0 shared | pump model, 507 elements | `8212217` (0.10.2) | OQ2: the source name is part of element identity |
+| M3 | Library file only: comments dropped, formatting rewritten; no construct, name, or relationship lost; `check --strict` passes on the output | pump library file | `8212217` (0.10.2) | OQ9: tier 2 needs comment preservation |
+| M4 | 16 of 16 definitions to classes; 9 of 11 nested features to object properties; the 2 scalar features are an exporter gap | pump library and profile | `8212217` (0.10.2) | OQ4: class export observed; specialization, `owl:versionIRI`, and `owl:imports` untested |
+| M5 | Five queries at two to four triple patterns on the projection; normative versions not written | pump model, 507 elements | `8212217` (0.10.2) | OQ10: saving unmeasured |
+| M6 | 10 of 10 injected faults have a result on their property; 10 of 18 clean rows also flagged; no wrong-`rdf:type` row; vacuous pass as a normative-graph boundary, 507 untargeted nodes at Info on holonic `067f5ea` | stand-in table, pump library shapes | `8212217` (0.10.2) | OQ6: normative boundary needs its own shapes; mistyped records untested |

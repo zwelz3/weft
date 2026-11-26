@@ -35,44 +35,51 @@ def build_projection(normative_ttl):
 
 
 def attach_verdicts(normative, projection, verify_text):
-    # Match each verify report line to its SatisfyClaim by the requirement's
-    # declaredName and the satisfying element's reference text (the report
-    # names elements by qualified reference, not by elementId, since verify
-    # works over the textual model directly).
-    name_to_req = {}
-    for s, _, o in normative.triples((None, None, None)):
-        pass
+    # Match each verify report line to its SatisfyClaim on two keys: the
+    # requirement's declaredName and the satisfying element's name. The
+    # report names the satisfying element by its textual reference (for
+    # example `pumpSystemUnderTest.pump`), not by elementId, because verify
+    # works over the textual model directly. tk:satisfyingFeature points at
+    # the feature the reference resolves to, which for a feature chain is
+    # the chain's last feature, so the reference's last segment is compared
+    # with that feature's declaredName. A line that matches no claim, or
+    # more than one, attaches no verdict and is reported, so two satisfy
+    # claims on one requirement never receive each other's verdicts.
     q = """
     PREFIX sysml: <https://www.omg.org/spec/SysML/20250201/>
     PREFIX tk: <https://weft.ghostsystems.ai/spike1/toolkit-vocab#>
-    SELECT ?claim ?reqName ?elemRef WHERE {
+    SELECT ?claim ?reqName ?elemName WHERE {
       ?claim a sysml:SatisfyRequirementUsage ;
              tk:satisfiedRequirement ?req ;
              tk:satisfyingFeature ?elem .
       ?req tk:declaredName ?reqName .
-      OPTIONAL { ?elem tk:declaredName ?elemName }
-      BIND(COALESCE(?elemName, "") AS ?elemRef)
+      ?elem tk:declaredName ?elemName .
     }
     """
-    claims_by_req = {}
+    claims = {}
     for row in normative.query(q):
-        claims_by_req.setdefault(str(row.reqName), []).append(str(row.claim))
+        claims.setdefault((str(row.reqName), str(row.elemName)), []).append(row.claim)
 
+    unmatched = []
     for line in verify_text.splitlines():
         m = VERIFY_LINE.search(line)
         if not m:
             continue
-        req_name = m.group("req")
-        verdict = m.group("verdict").lower()
-        for claim_iri in claims_by_req.get(req_name, []):
-            projection.add((__import__("rdflib").URIRef(claim_iri), PROJ.verdict, Literal(verdict)))
+        key = (m.group("req"), m.group("elem").rsplit(".", 1)[-1])
+        matches = claims.get(key, [])
+        if len(matches) != 1:
+            unmatched.append((line, len(matches)))
+            continue
+        projection.add((matches[0], PROJ.verdict, Literal(m.group("verdict").lower())))
+    for line, count in unmatched:
+        print(f"no verdict attached ({count} matching claims): {line}", file=sys.stderr)
+    return unmatched
 
 
 def run_queries(projection, queries_dir, out_path):
     lines = []
     for rq_file in sorted(Path(queries_dir).glob("*.rq")):
         text = rq_file.read_text()
-        header = "\n".join(l for l in text.splitlines() if l.startswith("#"))
         lines.append(f"## {rq_file.name}\n")
         try:
             results = list(projection.query(text))
