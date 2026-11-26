@@ -30,6 +30,12 @@ Invariants for any session on this repository. Read [STATUS.md](STATUS.md) first
 
 13. **The repository is licensed under Apache-2.0.** Every dependency that ships in the package is checked for compatibility before packaging.
 
+14. **Comments state what the code cannot.** A comment is written only where the logic, or a decision the code embodies, cannot be recovered from the code's structure, names, and types. The first reader is an agent and the second a person, so the test is whether an agent reading the code without the comment would misread it. Comments that justify a choice, record its history, restate what the code does, or answer an anticipated objection are not written, because the reasons for a decision belong in a decision record (rule 2) and its history in the commit message. Code that would need such a comment to be understood is restructured, renamed, or split until it does not. A docstring states a public interface's contract (inputs, outputs, errors) and not the reasons behind it.
+
+15. **Unattended automation works through its own pull requests.** An automation that runs without a person directing the session proposes changes as pull requests of its own, which follow these rules. It does not commit to another contributor's branch, and it adds no process artifacts (prompts, plans, briefs, run logs) to the repository.
+
+16. **The version changes only in a release commit.** The package version in `src/weft/__init__.py` changes in the commit that releases that version, together with its changelog entry (rule 10), and in no other commit.
+
 ## Style
 
 Draft documents with the `better-language-skill` skill. The skill is not vendored in this repository, so the following rules stand in for it when it is unavailable. American English spelling. Section headings are sentences or noun phrases. No em-dashes for sentence flow. State material impersonally in documentation. Do not estimate work in calendar time. One claim per sentence. No hedging, filler, or rhetorical questions. Name the concrete thing (a file, a commit, an issue) rather than the category it belongs to. Lists only for parallel items; argument stays in prose.

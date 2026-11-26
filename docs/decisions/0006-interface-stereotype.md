@@ -1,6 +1,6 @@
 # 0006. Interface specifications and realized connections, separated by the SysML individual keyword
 
-- Status: accepted (revised 2026-10-08: usages and instances are stereotyped)
+- Status: accepted (revised 2026-10-08: usages and instances are stereotyped; revised 2026-11-26: no subclass axiom across the specialization)
 - Date: 2026-10-08
 
 ## Context
@@ -17,12 +17,12 @@ The Interface stereotype applies to `interface def`, `port def`, `interface`, an
 
 | Element | Instances of the exported class | Alignment |
 |---|---|---|
-| `interface def` or `port def` without `individual` | Interface specifications | Subclass of [CCO directive information content entity](https://www.commoncoreontologies.org/ont00000965) |
+| `interface def` or `port def` without `individual` | Interface specifications | Subclass of [CCO prescriptive information content entity](https://www.commoncoreontologies.org/ont00000965) (labeled "Directive ICE" in earlier CCO releases) |
 | `interface` or `port` usage without `individual` | None. The usage is a feature of its owning definition | Exported as a restriction on the owner's class that requires a feature conforming to the usage's definition |
 | `individual interface def` or `individual port def` | The one realized connection or port it names | A named individual typed as a realized interface, a subclass of [BFO material entity](http://purl.obolibrary.org/obo/BFO_0000040) declared under the profile's namespace |
 | `individual interface` or `individual port` usage | The same individual, in the context of its owner | The usage's individual, related to its owner's individual |
 
-An individual definition specializes the specification it realizes, as in `individual interface def CableC7 :> FluidLink`. The derivation emits that specialization as an object property from the individual to the exported specification class, whose range is the specification class (AGENTS.md rule 5). The property's name and namespace are fixed in [docs/graph-contract.md](../graph-contract.md). Records of installed connections held in an adapter holon, such as rows of a cabling workbook, use the same property.
+An individual definition specializes the specification it realizes, as in `individual interface def CableC7 :> FluidLink`. The derivation emits that specialization as an object property from the individual to the specification, and never as `rdfs:subClassOf`, because a realized connection is a material entity and a specification is an information content entity, which BFO declares disjoint, so a subclass axiom across the two would make every realized connection class unsatisfiable. The object property's value is the specification definition's IRI used as an individual, which OWL 2 DL allows as punning, and its range is therefore the specification as an individual rather than its class (AGENTS.md rule 5). This departs from the profile brief's rule that a definition's exported class holds the things the definition describes, for the reason decision 0008 gives for requirements: tickets and interface control documents concern the specification. The property's name and namespace are fixed in [docs/graph-contract.md](../graph-contract.md). Records of installed connections held in an adapter holon, such as rows of a cabling workbook, use the same property.
 
 Weft adds no instance metadata tag. The `individual` keyword is the tag, and the toolkit checks its well-formedness (AGENTS.md rule 6).
 
