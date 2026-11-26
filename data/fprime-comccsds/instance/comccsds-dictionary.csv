@@ -1,0 +1,36 @@
+kind,name,id,type_or_params,telemetryUpdate,severity,commandKind,format,limits,annotation
+command,ComCcsds.comQueue.FLUSH_QUEUE,33554432,queueType:Svc.QueueType;indexType:FwIndexType,,,async,,,Flush a specific queue. This will discard all queued data in the specified queue removing it from eventual downlink. Buffers requiring ownership return will be returned via the bufferReturnOut port.
+command,ComCcsds.comQueue.FLUSH_ALL_QUEUES,33554433,,,,async,,,Flush all queues. This will discard all queued data removing it from eventual downlink. Buffers requiring ownership return will be returned via the bufferReturnOut port.
+command,ComCcsds.comQueue.SET_QUEUE_PRIORITY,33554434,queueType:Svc.QueueType;indexType:FwIndexType;newPriority:FwIndexType,,,async,,,Set the priority of a specific queue at runtime
+event,ComCcsds.comQueue.QueueOverflow,33554432,queueType:Svc.QueueType;index:FwIndexType,,WARNING_HI,,The {} queue at index {} overflowed,,Queue overflow event
+event,ComCcsds.comQueue.QueuePriorityChanged,33554433,queueType:Svc.QueueType;indexType:FwIndexType;newPriority:FwIndexType,,ACTIVITY_HI,,{} {} priority changed to {},,Queue priority changed event
+event,ComCcsds.frameAccumulator.NoBufferAvailable,33558528,,,WARNING_HI,,Could not allocate a valid buffer to fit the detected frame,,An error occurred while deserializing a packet
+event,ComCcsds.frameAccumulator.FrameDetectionSizeError,33558529,size_out:FwSizeType,,WARNING_HI,,Reported size_out={} exceeds accumulation buffer capacity,,A frame was detected whose size exceeds the internal accumulation buffer capacity. No choice but to drop the frame.
+event,ComCcsds.frameAccumulator.FrameDetectionValidFrameDropped,33558530,,,WARNING_HI,,A valid frame was detected but dropped,,A frame was detected but dropped because there was no buffer to hold it
+event,ComCcsds.commsBufferManager.NoBuffsAvailable,33562624,size:FwSizeType,,WARNING_HI,,No available buffers of size {},,The BufferManager was unable to allocate a requested buffer
+event,ComCcsds.commsBufferManager.NullEmptyBuffer,33562625,,,WARNING_HI,,Received null pointer and zero size buffer,,The buffer manager received a null pointer and zero-sized buffer as a return. Probably undetected failed buffer allocation
+event,ComCcsds.fprimeRouter.SerializationError,33566720,status:U32,,WARNING_HI,,Serializing com buffer failed with status {},,An error occurred while serializing a com buffer
+event,ComCcsds.fprimeRouter.DeserializationError,33566721,status:U32,,WARNING_HI,,Deserializing packet type failed with status {},,An error occurred while deserializing a packet
+event,ComCcsds.fprimeRouter.FileOutContextTableFull,33566722,,,WARNING_HI,,Buffer-to-context table full on fileOut; context will be lost for this buffer,,"The buffer-to-context table was full when a buffer was handed off on fileOut. The buffer is still forwarded, but its context cannot be restored on return and will be returned empty."
+event,ComCcsds.fprimeRouter.UnknownDataOutContextTableFull,33566723,,,WARNING_HI,,Buffer-to-context table full on unknownDataOut; context will be lost for this buffer,,"The buffer-to-context table was full when a buffer was handed off on unknownDataOut. The buffer is still forwarded, but its context cannot be restored on return and will be returned empty."
+event,ComCcsds.fprimeRouter.BufferContextNotFound,33566724,,,WARNING_HI,,Returned buffer not found in context table; returning with empty context,,"A buffer returned on fileBufferReturnIn was not found in the buffer-to-context table. The buffer is still returned, but with an empty context."
+event,ComCcsds.tcDeframer.InvalidPacket,33570816,,,WARNING_LO,,Invalid packet received refusing to deframe,,Invalid packet received that will be dropped
+event,ComCcsds.tcDeframer.InvalidSpacecraftId,33570817,transmitted:U16;configured:U16,,WARNING_LO,,Invalid Spacecraft ID Received. Received: {} | Deframer configured with: {},,Deframing received an invalid SCID
+event,ComCcsds.tcDeframer.InvalidFrameLength,33570818,transmitted:U16;actual:FwSizeType,,WARNING_HI,,Not enough data received. Header length specified: {} | Received data length: {},,Deframing received an invalid frame length
+event,ComCcsds.tcDeframer.InvalidVcId,33570819,transmitted:U16;configured:U16,,ACTIVITY_LO,,Invalid Virtual Channel ID Received. Header token specified: {} | Deframer configured with: {},,Deframing received an invalid VCID
+event,ComCcsds.tcDeframer.InvalidCrc,33570820,transmitted:U16;computed:U16,,WARNING_HI,,Invalid checksum received. Trailer specified: {} | Computed on board: {},,Deframing received an invalid checksum
+event,ComCcsds.spacePacketDeframer.InvalidPacket,33574912,,,WARNING_HI,,Malformed packet received refusing to deframe,,Deframing received a malformed packet
+event,ComCcsds.spacePacketDeframer.InvalidLength,33574913,transmitted:FwSizeType;actual:FwSizeType,,WARNING_HI,,Invalid length received. Header specified packet byte size of {} | Actual received data length: {},,Deframing received an invalid frame length
+event,ComCcsds.spacePacketFramer.NoBufferAvailable,33587200,,,WARNING_HI,,Failed to allocate a packet buffer: packet dropped,,"No buffer was available to hold the packet, which was dropped"
+event,ComCcsds.apidManager.UnexpectedSequenceCount,33591296,transmitted:U16;expected:U16,,WARNING_LO,,Unexpected sequence count received. Packets may have been dropped. Transmitted: {} | Expected on board: {},,Deframing received an unexpected sequence count
+telemetry,ComCcsds.comQueue.comQueueDepth,33554432,Svc.ComQueueDepth,always,,,,,Depth of queues of Fw::ComBuffer type
+telemetry,ComCcsds.comQueue.buffQueueDepth,33554433,Svc.BuffQueueDepth,always,,,,,Depth of queues of Fw::Buffer type
+telemetry,ComCcsds.comQueue.comIngressDropped,33554434,Svc.ComQueueIngressDrops,on change,,,,,Total number of async ingress drops per Fw::ComBuffer port
+telemetry,ComCcsds.comQueue.buffIngressDropped,33554435,Svc.BuffQueueIngressDrops,on change,,,,,Total number of async ingress drops per Fw::Buffer port
+telemetry,ComCcsds.comQueue.comManagedDropped,33554436,Svc.ComQueueManagedDrops,on change,,,,,Cumulative drops at the managed Fw::ComBuffer queues (including DROP_OLDEST)
+telemetry,ComCcsds.comQueue.buffManagedDropped,33554437,Svc.BuffQueueManagedDrops,on change,,,,,Cumulative drops at the managed Fw::Buffer queues (including DROP_OLDEST)
+telemetry,ComCcsds.commsBufferManager.TotalBuffs,33562624,U32,on change,,,,,The total buffers allocated
+telemetry,ComCcsds.commsBufferManager.CurrBuffs,33562625,U32,on change,,,,,The current number of allocated buffers
+telemetry,ComCcsds.commsBufferManager.HiBuffs,33562626,U32,on change,,,,,The high water mark of allocated buffers
+telemetry,ComCcsds.commsBufferManager.NoBuffs,33562627,U32,on change,,,,"{""high"": {""red"": 1}}",The number of requests that couldn't return a buffer
+telemetry,ComCcsds.commsBufferManager.EmptyBuffs,33562628,U32,on change,,,,"{""high"": {""red"": 1}}",The number of empty buffers returned

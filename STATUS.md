@@ -19,7 +19,7 @@ Design. The repository holds decision records, open questions, a plan for the pr
 
 | Item | Location | State | Next action |
 |---|---|---|---|
-| Data for the spike | [zwelz3/weft#1](https://github.com/zwelz3/weft/issues/1) | Requested | The maintainer supplies a component, an instance table, trace data, and an adapter ontology excerpt |
+| Data for the spike | [zwelz3/weft#1](https://github.com/zwelz3/weft/issues/1) | Public stand-in in `data/fprime-comccsds/`: NASA F Prime's ComCcsds subtopology with 20 requirements, a 35-row dictionary table, and trace data from commits, tests, and issues | Run spike steps 6 and 7 on it; the adopter's own component, if supplied later, replaces it |
 | Spike 1 | [zwelz3/weft#2](https://github.com/zwelz3/weft/issues/2) | Not started | Steps 1 to 5 and measurements M1 to M4 can start on a public example before #1 is answered |
 | Profile | [docs/plans/profile-brief.md](docs/plans/profile-brief.md) | Not started | Decide the component, interface, and function stereotypes, recording each in `docs/decisions/` |
 | Report to Flexo maintainers | [docs/outreach/flexo-sysmlv2-rdf.md](docs/outreach/flexo-sysmlv2-rdf.md) | Drafted and reviewed, not filed | The maintainer files it on Open-MBEE/flexo-mms-sysmlv2 |
