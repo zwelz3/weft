@@ -35,7 +35,7 @@ Ontologies are exported from SysML library packages so that a domain definition 
 
 Definitions and specialization derive to OWL classes and `rdfs:subClassOf` without loss. Usages with contextual features, redefinition in context, and feature chains have no direct OWL equivalent, so reusable knowledge belongs in definitions inside library packages.
 
-BFO/CCO grounding is applied through a profile. A stereotype such as `«MaterialArtifact»` is aligned once to its BFO/CCO class in an alignment file kept outside the SysML, and an element that carries the stereotype inherits the alignment in the exported ontology. A test asserts that every stereotype has exactly one alignment axiom and that every alignment axiom names an existing stereotype. The alignment targets the current CCO release; because CCO publishes new releases, the alignment file records the CCO version IRI it was written against, and a CCO upgrade is a reviewed change to that file.
+BFO/CCO grounding is applied through a profile. A stereotype such as `«MaterialArtifact»` is aligned once to its BFO/CCO class in an alignment file kept outside the SysML, and an element that carries the stereotype inherits the alignment in the exported ontology. A test asserts that every alignment row of the stereotype decisions (a stereotype, a `bearer` value, or a row of decision 0006) has exactly one alignment axiom and that every alignment axiom names an existing row. The alignment targets the current CCO release; because CCO publishes new releases, the alignment file records the CCO version IRI it was written against, and a CCO upgrade is a reviewed change to that file.
 
 ## OQ5. Identity links and trace links
 

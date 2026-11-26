@@ -52,7 +52,7 @@ The profile defines one metadata definition for trace links, applied to the elem
 
 1. `sysmlv2 check --strict` passes on the profile and on the corpus model.
 2. The corpus model uses every stereotype and every trace property, and a test fails if one is unused (AGENTS.md rule 8).
-3. Every stereotype has exactly one alignment axiom, every alignment axiom names an existing stereotype, and a test checks both directions.
+3. Every alignment row the stereotype decisions define (one per stereotype without rows, one per `bearer` value in decision 0005, and one per row of decision 0006's table) has exactly one alignment axiom, every alignment axiom names an existing row, and a test checks both directions.
 4. Every property that a shape requires at Violation severity is produced from the corpus model's textual notation by the derivation step (AGENTS.md rule 7).
 
 The tests resolve BFO, CCO, and the profile from files in the package or the checkout, without network access (AGENTS.md rule 9).
