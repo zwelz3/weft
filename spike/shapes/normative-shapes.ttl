@@ -5,11 +5,12 @@
 
 # Spike 2 step 2. Targets the toolkit's own class IRIs as they appear in
 # spike/normative/output/*.ttl (sysml:MetadataUsage, sysml:AttributeUsage,
-# sysml:InterfaceDefinition), not step 5/6's OWL export classes --
-# spike/shapes/FINDINGS.md records that a shape set targeting the export
+# sysml:InterfaceDefinition), not step 5/6's OWL export classes.
+# spike/holons/BACKENDS.md records that a shape set targeting the export
 # classes validates the normative graph vacuously, because the normative
 # graph types its nodes with the toolkit's metaclasses, not the exported
-# classes. These shapes read the raw KerML/SysML element graph directly, so
+# classes. These three shapes are not a boundary for the whole normative
+# graph: loaded as one, they leave 612 of its 630 typed subjects untargeted. These shapes read the raw KerML/SysML element graph directly, so
 # the property paths below walk the toolkit's own AST shape (FeatureValue
 # expression trees for a metadata feature's value, Subclassification for a
 # specialization) rather than a derived, flattened property.
@@ -18,9 +19,9 @@
 # exactly one alignment axiom": the real alignment file is profile work
 # (docs/plans/profile-brief.md), not this spike. These three entries stand
 # in for it, keyed by the bearer value's declared name. They are inlined as
-# a SPARQL VALUES block in the shape below (not asserted as data triples
-# here) because a SPARQL-based shape's sh:select runs against the data
-# graph pySHACL validates, not the shapes graph that carries this file --
+# a NOT IN filter in the shape below (not asserted as data triples here),
+# because a SPARQL-based shape's sh:select runs against the data graph
+# pySHACL validates, not the shapes graph that carries this file, so
 # triples asserted only here would be invisible to the constraint query at
 # validation time.
 
@@ -61,15 +62,18 @@ weft:ComponentBearerMinCountShape
     ] .
 
 # Decision 0005, second shape: every bearer value declared in the model
-# (an AttributeUsage typed BearerKind -- the profile's `material` and
+# (an AttributeUsage typed BearerKind: the profile's `material` and
 # `information`, or a project-declared value such as `thirdPartyBinary`)
 # has exactly one alignment axiom. The three names below stand in for a
-# real alignment file (docs/plans/profile-brief.md is where that belongs);
-# each is registered exactly once, so "declared name is in this set" and
-# "has exactly one alignment axiom" coincide, and a value whose name is
-# outside the set (no axiom registered for it) violates. SHACL forbids a
-# SPARQL constraint from containing a VALUES clause, so the registry is a
-# NOT IN list rather than a joined triple pattern.
+# real alignment file (docs/plans/profile-brief.md is where that belongs).
+# A value whose name is outside the set (no axiom registered for it)
+# violates. The shape checks "at least one axiom" only: a name allow-list
+# has no way to represent a value registered twice, so it cannot detect a
+# duplicate axiom, and "exactly one" holds here only because the list
+# names each value once. A real alignment file asserted as data would let
+# the shape count axioms per value. SHACL forbids a SPARQL constraint from
+# containing a VALUES clause, so the registry is a NOT IN list rather than
+# a joined triple pattern.
 weft:BearerValueAlignmentAxiomShape
     a sh:NodeShape ;
     sh:targetClass sysml:AttributeUsage ;
@@ -90,7 +94,7 @@ weft:BearerValueAlignmentAxiomShape
                 # Excludes the feature slot itself: `metadata def Component {
                 # attribute bearer : BearerKind[1..*]; }` declares one
                 # AttributeUsage named "bearer", typed BearerKind, that is
-                # never an assigned value -- only its per-component
+                # never an assigned value; only its per-component
                 # redefinitions are.
                 FILTER (?name != "bearer")
                 FILTER (?name NOT IN ("material", "information", "thirdPartyBinary"))
@@ -99,7 +103,7 @@ weft:BearerValueAlignmentAxiomShape
     ] .
 
 # Decision 0006: an `individual interface def` (tk:isIndividual true) is
-# linked to the specification it specializes by an object property -- the
+# linked to the specification it specializes by an object property. The
 # toolkit already emits this as Subclassification's tk:general, an IRI
 # (AGENTS.md rule 5), not a literal; this shape asserts the link exists and
 # resolves to another InterfaceDefinition rather than asserting a new

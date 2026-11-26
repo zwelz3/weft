@@ -36,12 +36,14 @@ def main():
         print("CAPABILITY: graph format selection is reachable from Python.")
     else:
         print(
-            "CAPABILITY GAP: sysmlv2-py 0.10.2 exposes Session.from_sources() only "
-            "(TSession::from_sources, which IDS.md says retains GraphFormat::LegacyV2 -- "
-            "scheme 2). Session.from_sources_with_graph_format / Model.with_graph_format "
-            "exist in the Rust crates (sysmlv2-model) but are not wrapped by #[pymethods] "
-            "anywhere in sysmlv2-py's source. No Python-reachable constructor selects "
-            "scheme 3 at this commit."
+            "CAPABILITY GAP: sysmlv2-py 0.10.2 exposes four Session constructors "
+            "(from_files, from_sources, from_interchange_json, from_compact_cbor). The first "
+            "three build with GraphFormat::LegacyV2 (scheme 2); from_compact_cbor takes the "
+            "graph format named in the payload header, so it opens a scheme-3 payload but "
+            "cannot produce one from textual notation. Session::from_sources_with_graph_format "
+            "(sysmlv2-transform) and Model::with_graph_format (sysmlv2-model) are not wrapped by "
+            "#[pymethods] anywhere in sysmlv2-py's source. No Python-reachable constructor "
+            "selects scheme 3 for textual sources at this commit."
         )
 
 

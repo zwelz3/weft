@@ -296,9 +296,11 @@ def m5(out_dir):
 
 def scheme3_capability_probe():
     # Step 4: M1/M2 for id scheme 3 need Session.from_sources_with_graph_format
-    # or an equivalent Python-reachable selector; sysmlv2-py 0.10.2 wraps only
-    # from_sources() (scheme 2, IDS.md's GraphFormat::LegacyV2 default). This
-    # does not run M1/M2 for scheme 3; it records why not. See
+    # or an equivalent Python-reachable selector; sysmlv2-py 0.10.2 wraps none.
+    # Its four Session constructors build textual sources with
+    # GraphFormat::LegacyV2 (scheme 2) or, for from_compact_cbor, take the
+    # format a payload already names. This does not run M1/M2 for scheme 3; it
+    # records why not. See
     # spike/ids/probe_scheme3.py for the full inspection and
     # spike/ids/test_probe_scheme3.py for the regression fence.
     try:

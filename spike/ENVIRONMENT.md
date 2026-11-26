@@ -50,6 +50,15 @@ holonic's commit here (`d8d1758752827c35fc6781e89e01557b6e5e1825`) is the one th
 and matches the "first reviewed" commit in decision 0003, not the `25d1c84` commit that decision
 pins for the Weft package proper. Step 7 notes where this matters.
 
+## Spike 2 step 1: holonic for the holon reports
+
+The committed `spike/holons/rdflib-report.md` and `spike/holons/fuseki-report.md` were generated
+with holonic installed from `git+https://github.com/zwelz3/holonic@067f5ea`
+(`067f5ea2bdeeb2f7415593def90188b213d029f3`, the merge of zwelz3/holonic#56 on `main`), rdflib
+7.6.0, pyshacl 0.40.2, and aiohttp 3.14.5 (which holonic's `FusekiBackend` imports), on Python
+3.12.3. Decision 0003's pin, `25d1c84`, gives the same untargeted counts and health on the same
+graph. `spike/holons/BACKENDS.md` records the Fuseki runtime.
+
 ## Spike 2 step 4: the Python bindings
 
 The toolkit's `sysmlv2-py` crate, built with maturin at the same pinned commit
@@ -70,14 +79,20 @@ no shell-profile modification, since this environment's home directory is read-o
 
 M1 and M2 for id scheme 3 (`IDS.md`'s `GraphFormat::CanonicalV3`) do not run. The bindings build
 cleanly (the brief's "if the bindings cannot be built" case does not apply), but
-`crates/sysmlv2-py/src/*.rs` wraps no graph-format selector: `Session.from_sources()` is the only
-constructor exposed to Python, calling `TSession::from_sources`, which `IDS.md` states retains
-`GraphFormat::LegacyV2` (scheme 2). `Session::from_sources_with_graph_format` and
-`Model::with_graph_format` exist in `sysmlv2-model`, one layer below the Python binding, and
-`IDS.md` already says as much for the Rust API generally ("the opt-in is currently exposed through
-the Rust APIs") -- this spike confirms that the Python binding does not add its own exposure on
-top. `spike/ids/probe_scheme3.py` greps the binding crate's source for every graph-format-related
-identifier and finds none; `spike/ids/test_probe_scheme3.py` is the regression fence (it starts
-failing the day a release adds the wrapper, which is the cue to run M1/M2 for scheme 3 for real).
-This narrows OQ2 further than spike 1 did: not only does the CLI expose one scheme, so do the
-Python bindings, at this release.
+`crates/sysmlv2-py/src/lib.rs` wraps no graph-format selector. It exposes four `Session`
+constructors: `from_files` and `from_sources` (both reach `TSession::from_sources_with_library`,
+which passes `GraphFormat::LegacyV2`), `from_interchange_json` (`TSession::from_interchange_json_with_library`,
+which lifts the JSON to text and builds with `GraphFormat::LegacyV2`), and `from_compact_cbor`
+(`TSession::from_compact_cbor_with_library`, which takes the graph format named in the CBOR
+payload's header). `from_compact_cbor` can therefore open a payload some other client encoded under
+scheme 3, but no binding produces a scheme-3 model from textual notation.
+`Session::from_sources_with_graph_format` is in `sysmlv2-transform` and `Model::with_graph_format`
+in `sysmlv2-model`, below the Python binding; `IDS.md` already says the opt-in is "currently
+exposed through the Rust APIs", and this spike confirms that the Python binding adds no exposure of
+its own. `spike/ids/probe_scheme3.py` searches the binding crate's source for `graph_format`,
+`GraphFormat`, and `canonical` and finds none. `spike/ids/test_probe_scheme3.py` repeats that
+search against the toolkit checkout named by the `WEFT_TOOLKIT_SRC` environment variable (it skips
+when the variable is unset), and checks the installed wheel's constructor names. Run against a
+checkout of a later release, it fails if that release's binding crate mentions a graph-format API,
+which is the cue to run M1 and M2 for scheme 3. This narrows OQ2 further than spike 1 did: at this
+release, neither the CLI nor the Python bindings can build a scheme-3 model from textual notation.

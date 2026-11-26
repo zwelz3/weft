@@ -198,6 +198,12 @@ The toolkit stores a metadata feature's assigned value behind a FeatureValue exp
 already an object property in the raw toolkit graph (`Subclassification`'s `tk:general` is an IRI),
 so no extra derivation work was needed there (AGENTS.md rule 5 already holds on the raw graph).
 
+`BearerValueAlignmentAxiomShape` stands in for decision 0005's "every value has exactly one
+alignment axiom" with a list of registered value names in a `NOT IN` filter. It detects a value
+with no axiom. It cannot detect a value with two, because a name list has no way to represent a
+duplicate registration; that half of the rule waits for an alignment file asserted as data, against
+which a shape can count axioms per value.
+
 ## Step 3 (§3). M5 against the full normative graph
 
 `spike/projection/full-graph-queries/` has the five thread queries rewritten against the full
@@ -242,11 +248,15 @@ and the comparison is independent evidence for the other three columns only.
 
 The `sysmlv2-py` bindings build cleanly at the pinned commit with `maturin` (`spike/ENVIRONMENT.md`
 has the exact command; Rust installed via `rustup` with no shell-profile changes, since this
-environment's home directory is read-only). M1 and M2 do not run for scheme 3: the bindings wrap
-only `Session.from_sources()` (scheme 2, `GraphFormat::LegacyV2`), and no `#[pymethods]` anywhere in
-`crates/sysmlv2-py/src/` exposes `Session::from_sources_with_graph_format` or
-`Model::with_graph_format`, the two Rust-level entry points `IDS.md` documents for scheme 3.
-`spike/ids/probe_scheme3.py` confirms this by inspecting the binding crate's source directly;
-`spike/ids/test_probe_scheme3.py` is the regression fence (it starts failing, and M1/M2 for scheme 3
-become runnable for real, the day a release adds the wrapper). This narrows OQ2 further than spike 1
-did: at 0.10.2, no supported client -- CLI or Python -- can select scheme 3.
+environment's home directory is read-only). M1 and M2 do not run for scheme 3. The bindings expose
+four `Session` constructors: `from_files`, `from_sources`, and `from_interchange_json` build with
+`GraphFormat::LegacyV2` (scheme 2), and `from_compact_cbor` takes the graph format a CBOR payload's
+header names, so it can open a scheme-3 payload but cannot produce one from textual notation. No
+`#[pymethods]` in `crates/sysmlv2-py/src/` wraps `Session::from_sources_with_graph_format` (in
+`sysmlv2-transform`) or `Model::with_graph_format` (in `sysmlv2-model`), the two Rust-level entry
+points `IDS.md` documents for scheme 3. `spike/ids/probe_scheme3.py` confirms this by inspecting the
+binding crate's source; `spike/ids/test_probe_scheme3.py` repeats the inspection against the
+checkout `WEFT_TOOLKIT_SRC` names and checks the installed wheel's constructor names. Pointed at a
+later release's checkout, it fails if that release's binding crate mentions a graph-format API. This
+narrows OQ2 further than spike 1 did: at 0.10.2, neither the CLI nor the Python bindings can build a
+scheme-3 model from textual notation.
