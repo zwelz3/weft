@@ -130,21 +130,37 @@ Toolkit commit and SysML-v2-Release commit unchanged from spike 1 (`spike/ENVIRO
 
 A disposable local Apache Jena Fuseki 6.2.0, in-memory dataset, started and stopped by this
 section (`spike/holons/BACKENDS.md`; AGENTS.md rule 1, tier 1). `spike/holons/load_holons.py
---backend fuseki` loads the same normative and projection graphs spike 1 loaded on rdflib and
-validates the same membranes. Byte-for-byte identical `MembraneResult` to an rdflib run taken at
-the same holonic commit (`spike/holons/fuseki-report.md` vs. an rdflib run): same `conforms`
-verdicts, same violation/warning/untargeted-node counts. Fuseki took 1.16 s against rdflib's 0.66 s
-for this section's load-and-validate run; the difference is the HTTP round trips to the dataset.
-Spike 1's finding (the normative holon's `conforms = True` is vacuous, because step 5/6's shapes
-target OWL export classes the normative graph's nodes are not instances of) holds identically on
-both backends -- it is a shape problem (closed in step 2 below), not a backend difference.
+--backend fuseki` loads the normative and projection graphs this branch commits (the normative
+graph has 630 typed subjects and 14,928 triples) and validates the same membranes as the rdflib
+backend. Both committed reports (`spike/holons/rdflib-report.md`, `spike/holons/fuseki-report.md`)
+were generated at holonic `067f5ea`, and the full `MembraneResult` reprs from the two backends are
+byte-identical: same `conforms` verdicts, same health, 0 violations, 0 warnings, 0 infos, and 630
+untargeted nodes for the normative holon on both. Over four runs each, rdflib took 1.42 to 1.95 s
+and Fuseki 4.01 to 4.63 s for the load-and-validate run. Spike 1's finding (the normative holon's
+`conforms = True` is vacuous, because step 5/6's shapes target OWL export classes the normative
+graph's nodes are not instances of) holds identically on both backends, so it is a boundary
+problem, not a backend difference.
+
+holonic already detects it. `MembraneResult.untargeted` lists all 630 typed subjects of the
+normative graph, at Info severity because the boundary declares no `cga:untargetedTypeSeverity`.
+With `<holon> cga:untargetedTypeSeverity sh:Violation` added to the boundary, holonic reports
+`conforms = True` and health compromised (`spike/holons/test_load_holons.py`). The detector is
+therefore the untargeted report with a declared severity, read through health rather than
+`conforms`. Step 2 below does not change this holon's boundary.
 
 ## Step 2 (§2). SHACL shapes that target the toolkit's class names
 
 `spike/shapes/normative-shapes.ttl`: three shapes whose `sh:targetClass` is a toolkit metaclass
-(`sysml:MetadataUsage`, `sysml:AttributeUsage`, `sysml:InterfaceDefinition`), closing the
-vacuous-targeting gap `spike/shapes/FINDINGS.md` recorded in spike 1. `spike/model/profile.sysml`
-is brought in line with decisions 0005 to 0007's accepted textual forms (open `attribute def
+(`sysml:MetadataUsage`, `sysml:AttributeUsage`, `sysml:InterfaceDefinition`). Each has focus
+nodes on the raw normative graph, so these three profile shapes are not vacuous there. They do not
+close the membrane gap `spike/shapes/FINDINGS.md` recorded in spike 1: the file is not loaded as
+the normative holon's boundary, and loaded as one it targets 18 of the graph's 630 typed subjects
+and leaves 612 untargeted (`spike/holons/test_load_holons.py`). A boundary that targets the whole
+normative graph would need shapes for its other metaclasses or `cga:permitsType` declarations, and
+the detector for what remains untargeted is holonic's untargeted report with a declared severity
+(step 1).
+
+`spike/model/profile.sysml` is brought in line with decisions 0005 to 0007's accepted textual forms (open `attribute def
 BearerKind` in place of the enum; `Interface` on usages and `individual` defs, not definitions
 only), and the pump model gains one element per new case: `EmbeddedController` (a two-valued
 `bearer = (material, information)`), `ThirdPartyModule` (a project-declared bearer value,
@@ -152,12 +168,15 @@ only), and the pump model gains one element per new case: `EmbeddedController` (
 `DataLink`) with its usage. `sysmlv2 check --strict --lib` passes on the extended model
 (`spike/model/CHECK.md`).
 
-`spike/shapes/test_shacl_export.py` proves non-vacuity: each of the three shapes has at least one
-focus node on the real pump-system normative graph, a synthetic node violating each shape in turn
-triggers a Violation, and the shapes conform cleanly on the real model -- the AGENTS.md rule 7 proof
-that every property they require at Violation severity is producible from `sysmlv2 check`-passing
-textual notation, since the real model (not a synthetic fixture) is what conforms. 6 of 6 tests
-pass.
+`spike/shapes/test_shacl_export.py` tests non-vacuity on the raw graph. For each of the three
+shapes, a node of the real pump-system normative graph meets the shape's SPARQL precondition (the
+MetadataUsage applies Component; the AttributeUsage is a BearerKind value; the InterfaceDefinition
+is `individual`), and removing or renaming what the constraint checks on that node makes it the
+focus node of a Violation from that shape. A synthetic node violating each shape in turn also
+triggers a Violation, and the shapes conform on the real model. Because the real model (not a
+synthetic fixture) is what conforms, and each shape's constraint is evaluated on it, this is the
+AGENTS.md rule 7 proof that the properties the shapes require at Violation severity are producible
+from `sysmlv2 check`-passing textual notation. 9 of 9 tests in the file pass.
 
 The toolkit stores a metadata feature's assigned value behind a FeatureValue expression tree (a
 `FeatureReferenceExpression`'s `tk:referent` for one value, an `OperatorExpression` with

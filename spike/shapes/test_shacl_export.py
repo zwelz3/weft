@@ -62,14 +62,16 @@ def test_annotated_class_inherits_metadata_property_shape(tmp_path):
 
 # Spike 2 step 2: non-vacuity for spike/shapes/normative-shapes.ttl (the
 # shape set whose sh:targetClass values are the toolkit's own class IRIs,
-# not step 5/6's OWL export classes FINDINGS.md found vacuous). Each test
-# below injects exactly one violating node for the shape it names and
-# asserts a Violation fires, then asserts every shape also has at least
-# one focus node on the real pump-system normative graph -- a shape that
-# validates cleanly only because it targets nothing would pass the first
-# assertion trivially and fail the second, same failure mode FINDINGS.md
-# already recorded once.
+# not the step 5/6 OWL export classes that BACKENDS.md found vacuous as the
+# normative holon's boundary). The synthetic tests inject one violating
+# node per shape and assert a Violation fires. The precondition test
+# asserts each shape has a node on the real pump-system normative graph
+# that meets its SPARQL precondition, and that breaking that node fires the
+# shape; a shape that conforms only because it selects nothing passes the
+# synthetic tests and fails the precondition test.
 import pyshacl
+import pytest
+from rdflib import RDF
 
 NORMATIVE_SHAPES = Path(__file__).parent / "normative-shapes.ttl"
 NORMATIVE_GRAPH = Path(__file__).parent.parent / "normative" / "output" / "pump-system.ttl"
@@ -86,20 +88,96 @@ def _focus_nodes(report_graph):
     return set(report_graph.objects(None, SH.focusNode))
 
 
-def test_every_normative_shape_has_a_focus_node_on_the_pump_system_graph():
+_PREFIXES = f"""
+PREFIX tk: <{TK}>
+PREFIX sysml: <{SYSML_NS}>
+"""
+
+# Each shape's SPARQL constraint selects $this only when a precondition
+# holds (the MetadataUsage applies Component; the AttributeUsage is a
+# BearerKind value other than the `bearer` slot; the InterfaceDefinition is
+# `individual`). A node of the target class that fails the precondition is
+# never checked, so an instance of the target class is not enough to show
+# the shape ran. These queries restate each precondition; the mutation for
+# each shape removes or renames what the constraint checks, on the real
+# graph, so the test also shows the precondition and the shape select the
+# same node.
+PRECONDITIONS = {
+    "ComponentBearerMinCountShape": (
+        """SELECT ?this WHERE {
+            ?this a sysml:MetadataUsage ; tk:metadataDefinition ?def .
+            ?def tk:declaredName "Component" .
+        }""",
+        """DELETE { $this tk:ownedFeature ?bf } WHERE {
+            $this tk:ownedFeature ?bf . ?bf tk:declaredName "bearer" .
+        }""",
+    ),
+    "BearerValueAlignmentAxiomShape": (
+        """SELECT ?this WHERE {
+            ?this a sysml:AttributeUsage ; tk:type ?bk ; tk:declaredName ?name .
+            ?bk tk:declaredName "BearerKind" .
+            FILTER (?name != "bearer")
+        }""",
+        """DELETE { $this tk:declaredName ?n } INSERT { $this tk:declaredName "unregisteredValue" }
+           WHERE { $this tk:declaredName ?n }""",
+    ),
+    "IndividualInterfaceLinkedToSpecificationShape": (
+        """SELECT ?this WHERE {
+            ?this a sysml:InterfaceDefinition ; tk:isIndividual true .
+        }""",
+        """DELETE { $this tk:ownedSpecialization ?s } WHERE { $this tk:ownedSpecialization ?s }""",
+    ),
+}
+
+
+def _precondition_nodes(data, shape_name):
+    select, _ = PRECONDITIONS[shape_name]
+    return sorted({row.this for row in data.query(_PREFIXES + select)}, key=str)
+
+
+@pytest.mark.parametrize("shape_name", sorted(PRECONDITIONS))
+def test_every_normative_shape_has_a_focus_node_meeting_its_precondition(shape_name):
     data = Graph().parse(NORMATIVE_GRAPH, format="turtle")
     shapes = _load_normative_shapes()
-    for shape_name in (
-        "ComponentBearerMinCountShape",
-        "BearerValueAlignmentAxiomShape",
-        "IndividualInterfaceLinkedToSpecificationShape",
-    ):
-        shape = URIRef(f"https://weft.ghostsystems.ai/spike2/normative-shapes/{shape_name}")
-        target_class = shapes.value(shape, SH.targetClass)
-        assert (None, URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), target_class) in data, (
-            f"{shape_name}'s target class {target_class} has no instance in the pump-system "
-            "normative graph -- the shape would validate vacuously (the FINDINGS.md failure mode)"
-        )
+    shape = URIRef(f"https://weft.ghostsystems.ai/spike2/normative-shapes/{shape_name}")
+    target_class = shapes.value(shape, SH.targetClass)
+
+    nodes = _precondition_nodes(data, shape_name)
+    assert nodes, (
+        f"no node in the pump-system normative graph meets {shape_name}'s SPARQL precondition; "
+        "the shape would validate vacuously (the BACKENDS.md failure mode)"
+    )
+    for node in nodes:
+        assert (node, RDF.type, target_class) in data
+
+    # The real graph conforms (test below), so each precondition node passed
+    # the constraint. Breaking the checked part on the first such node must
+    # make that node a focus node of a Violation from this shape.
+    _, mutation = PRECONDITIONS[shape_name]
+    data.update(_PREFIXES + mutation.replace("$this", f"<{nodes[0]}>"))
+    conforms, report_graph, _ = pyshacl.validate(data, shacl_graph=shapes, advanced=True)
+    assert conforms is False
+    fired = {
+        report_graph.value(r, SH.focusNode)
+        for r in report_graph.subjects(SH.sourceShape, shape)
+    }
+    assert nodes[0] in fired
+
+
+def test_component_bearer_shape_precondition_covers_a_two_valued_bearer():
+    """The `(tk:member|tk:argument)*` part of the min-count path is exercised
+    by EmbeddedController's `bearer = (material, information)`, not only by
+    single-valued bearers."""
+    data = Graph().parse(NORMATIVE_GRAPH, format="turtle")
+    rows = data.query(
+        _PREFIXES
+        + """SELECT ?this WHERE {
+            ?this tk:ownedFeature ?bf . ?bf tk:declaredName "bearer" .
+            ?bf (tk:member|tk:argument)* ?x . ?x tk:argument ?arg .
+        }"""
+    )
+    multi = {row.this for row in rows}
+    assert multi & set(_precondition_nodes(data, "ComponentBearerMinCountShape"))
 
 
 def test_component_bearer_min_count_shape_catches_a_component_with_no_bearer_value():
@@ -158,9 +236,11 @@ def test_normative_shapes_conform_on_the_real_pump_system_model():
     severity is producible through the primary authoring path. The real
     pump-system normative graph is derived from spike/model/*.sysml textual
     notation (sysmlv2 convert), so a clean conforms here on the real model
-    -- not a synthetic fixture -- is the rule 7 proof: the bearer values,
-    the project-declared value, the two-valued bearer, and the individual
+    (not a synthetic fixture) is the rule 7 proof: the bearer values, the
+    project-declared value, the two-valued bearer, and the individual
     interface specialization all came from `sysmlv2 check`-passing text.
+    The precondition test above shows each shape's constraint is evaluated
+    on at least one of those nodes, so the conformance is not vacuous.
     """
     data = Graph().parse(NORMATIVE_GRAPH, format="turtle")
     shapes = _load_normative_shapes()

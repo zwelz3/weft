@@ -220,12 +220,18 @@ Constraint Violation in MinCountConstraintComponent (http://www.w3.org/ns/shacl#
 
 ## Spike 2 step 2: a shape set that targets the toolkit's own class names
 
-The gap above is closed by `spike/shapes/normative-shapes.ttl`: `sh:targetClass` values are
-`sysml:MetadataUsage`, `sysml:AttributeUsage`, and `sysml:InterfaceDefinition` (the toolkit's own
-metaclasses, as they appear in `spike/normative/output/pump-system.ttl`), not the step 5 OWL export
-classes. `spike/shapes/test_shacl_export.py` asserts each shape has at least one focus node on the
-real pump-system normative graph and that a deliberately malformed node triggers a Violation,
-closing the non-vacuity gap this file first recorded.
+`spike/shapes/normative-shapes.ttl` states three profile shapes over the toolkit's own
+metaclasses (`sysml:MetadataUsage`, `sysml:AttributeUsage`, and `sysml:InterfaceDefinition`, as
+they appear in `spike/normative/output/pump-system.ttl`) rather than over the step 5 OWL export
+classes. `spike/shapes/test_shacl_export.py` asserts that each shape has a focus node on the real
+pump-system normative graph that satisfies the shape's SPARQL precondition, and that a deliberately
+malformed node triggers a Violation. These three shapes are therefore not vacuous on the raw graph.
+
+This does not close the membrane gap `spike/holons/BACKENDS.md` records (step 5/6's shapes, as the
+normative holon's boundary, target none of the graph's nodes). `normative-shapes.ttl` is not
+loaded as that boundary, and loaded as one it leaves 612 of the graph's 630 typed subjects
+untargeted. holonic's `MembraneResult.untargeted`, with `cga:untargetedTypeSeverity sh:Violation`
+declared in the boundary, is the detector for that gap (`spike/RESULTS.md`, spike 2 step 1).
 
 The toolkit stores a metadata feature's assigned value (`@Component { bearer = material; }`) behind
 a FeatureValue expression tree, not a direct triple from the MetadataUsage to the value: a single
