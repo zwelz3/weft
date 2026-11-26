@@ -102,13 +102,13 @@ If M1 shows acceptable churn, Weft needs only a thin sidecar map and the profile
 
 ### Results
 
-Spike 1 ran on branch `spike/1-graph-contract`. Details and method are in `spike/RESULTS.md`. The decision rule resolved to the first branch: churn is acceptable and Weft needs only a sidecar map. Step 7 ran on rdflib only; the Fuseki run is deferred because no plain HTTP Fuseki endpoint was available.
+Spike 1 ran on branch `spike/1-graph-contract`. Details and method are in `spike/RESULTS.md`. The decision rule is not resolved. M1 shows churn confined to the edited subtree for edits among named elements, and churn and id reassignment across every `satisfy` usage for an edit above them in their package; the rule does not define acceptable churn, so the choice between its two branches is left to the maintainer (`spike/RESULTS.md`, "Decision rule"). Step 7 ran on rdflib only; the Fuseki run is deferred because no plain HTTP Fuseki endpoint was available.
 
 | ID | Observed | Model | Toolkit commit | Open question change |
 |---|---|---|---|---|
-| M1 | Insert 0.0%, reorder 0.0%, move 1.0%, rename 5.7%, extract 24.1% of 507 ids changed | pump model, 503 elements | `8212217` (0.10.2) | OQ2: sidecar map suffices, upstream issue not a blocker |
-| M2 | 28 shared ids of 507, all from the identically named and identical profile file; none from the renamed packages | pump model, 503 elements | `8212217` (0.10.2) | OQ2: collision is a source-naming question |
-| M3 | Comments dropped, formatting rewritten; no construct, name, or relationship lost | pump model, 503 elements | `8212217` (0.10.2) | OQ9: tier 2 needs comment preservation |
-| M4 | 16 of 16 definitions to classes; 8 of 10 nested features to object properties (2 scalar) | pump model, 503 elements | `8212217` (0.10.2) | OQ4: confirmed as stated |
-| M5 | Five queries at two to four triple patterns on the projection; normative versions not written | pump model, 503 elements | `8212217` (0.10.2) | OQ10: saving unmeasured |
-| M6 | 10 of 10 injected faults caught on a stand-in table; vacuous pass as a normative-graph boundary | pump model, 503 elements | `8212217` (0.10.2) | OQ6: normative boundary needs its own shapes |
+| M1 | Rename, insert among named members, move within a package, reorder: no untouched id changed. Insert above `satisfy` usages, move to another package, `refactor extract`: 121 or 122 untouched ids changed and 4 or 5 reassigned to other elements | pump model, 507 elements | `8212217` (0.10.2) | OQ2: evidence recorded; sidecar map versus upstream blocker left open |
+| M2 | Same source names: 28 of 507 ids shared with renamed packages, 507 of 507 with identical ones. Root-qualified or absolute source names: 0 shared | pump model, 507 elements | `8212217` (0.10.2) | OQ2: the source name is part of element identity |
+| M3 | Library file only: comments dropped, formatting rewritten; no construct, name, or relationship lost; `check --strict` passes on the output | pump library file | `8212217` (0.10.2) | OQ9: tier 2 needs comment preservation |
+| M4 | 16 of 16 definitions to classes; 9 of 11 nested features to object properties; the 2 scalar features are an exporter gap | pump library and profile | `8212217` (0.10.2) | OQ4: class export observed; specialization, `owl:versionIRI`, and `owl:imports` untested |
+| M5 | Five queries at two to four triple patterns on the projection; normative versions not written | pump model, 507 elements | `8212217` (0.10.2) | OQ10: saving unmeasured |
+| M6 | 10 of 10 injected faults have a result on their property; 10 of 18 clean rows also flagged; no wrong-`rdf:type` row; vacuous pass as a normative-graph boundary, 507 untargeted nodes at Info on holonic `067f5ea` | stand-in table, pump library shapes | `8212217` (0.10.2) | OQ6: normative boundary needs its own shapes; mistyped records untested |

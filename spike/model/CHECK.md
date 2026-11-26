@@ -42,7 +42,8 @@ after the addition; the command above was re-run to confirm it.
 ## Public model
 
 `sysml/src/examples/Geometry Examples/SimpleQuadcopter.sysml` in the SysML-v2-Release clone at
-`/tmp/spike1-sysml-release/`, used for step 3's second graph and measurement M2. The Annex A
+`/tmp/spike1-sysml-release/`, used for step 3's second graph. Measurement M2 uses the pump model
+(`spike/RESULTS.md`). The Annex A
 `SimpleVehicleModel.sysml` was tried first and rejected: `sysmlv2 check --lib` reports 17 errors
 against it (ambiguous references such as `ignitionCmdPort` and `vehicleToRoadPort` resolving to
 multiple memberships), a toolkit/spec-vintage mismatch unrelated to this spike. `SimpleQuadcopter.sysml`
