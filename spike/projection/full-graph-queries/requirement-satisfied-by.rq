@@ -1,0 +1,22 @@
+# Spike 2 step 3: equivalent of queries/requirement-satisfied-by.rq against
+# the full normative graph. proj:verdict is not a graph property: it is
+# attached in spike/projection/project.py by matching `sysmlv2 verify`'s
+# text output (verify-report.txt) to a SatisfyRequirementUsage by
+# requirement name and satisfying-element reference, so this query returns
+# the three graph-resolvable columns only; spike/measure.py's m5 attaches
+# the verdict column the same way (by the same text match) before
+# comparing row-for-row with the projected query's results.
+#
+# Expected columns: ?requirement ?shortName ?element
+PREFIX sysml: <https://www.omg.org/spec/SysML/20250201/>
+PREFIX tk: <https://weft.ghostsystems.ai/spike1/toolkit-vocab#>
+
+SELECT ?requirement ?shortName ?element
+WHERE {
+  ?requirement a sysml:RequirementUsage ;
+               tk:declaredShortName ?shortName .
+  ?claim a sysml:SatisfyRequirementUsage ;
+         tk:satisfiedRequirement ?requirement ;
+         tk:satisfyingFeature ?element .
+}
+ORDER BY ?shortName ?element

@@ -1,7 +1,9 @@
 ## orphan-components.rq
 
-1 row(s)
+3 row(s)
 
+  https://weft.ghostsystems.ai/spike1/pump-system/element/a399b0a8-8e8f-5108-afda-e79378075cb9 | CMP-3RD
+  https://weft.ghostsystems.ai/spike1/pump-system/element/0592b1ae-4198-5ad6-9792-3c32261f7764 | CMP-EMBD
   https://weft.ghostsystems.ai/spike1/pump-system/element/4640d3e1-d4d2-5ade-9be6-cf64b1af6cc8 | CMP-SENS
 
 ## requirement-satisfied-by.rq

@@ -1,0 +1,19 @@
+# Spike 2 step 3: equivalent of queries/requirement-verified-by.rq against
+# the full normative graph. Inlines spike/projection/construct-verified-by.rq's
+# RequirementVerificationMembership walk (objective -> owner ->
+# verification case usage) in place of proj:verifiedBy.
+#
+# Expected columns: ?requirement ?shortName ?verificationCase
+PREFIX sysml: <https://www.omg.org/spec/SysML/20250201/>
+PREFIX tk: <https://weft.ghostsystems.ai/spike1/toolkit-vocab#>
+
+SELECT ?requirement ?shortName ?verificationCase
+WHERE {
+  ?membership a sysml:RequirementVerificationMembership ;
+              tk:verifiedRequirement ?requirement ;
+              tk:owningType ?objective .
+  ?requirement tk:declaredShortName ?shortName .
+  ?objective tk:owner ?verificationCase .
+  ?verificationCase a sysml:VerificationCaseUsage .
+}
+ORDER BY ?shortName ?verificationCase

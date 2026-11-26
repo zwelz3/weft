@@ -2,8 +2,12 @@
 
 Toolkit commit `821221767c3c56cb1ebe7da22666197a47c9c645` (0.10.2), SysML-v2-Release commit
 `de1070ae8e79c21532b8004fc663d47b35d0e9fa`, model `spike/model/profile.sysml`,
-`spike/model/pump-library.sysml`, and `spike/model/pump-system.sysml` (507 elements in the toolkit's
-full-json export), unless stated otherwise.
+`spike/model/pump-library.sysml`, and `spike/model/pump-system.sysml` as spike 1 left them (507
+elements in the toolkit's full-json export), unless stated otherwise. Spike 2 extended those files
+to 630 elements ("Spike 2 results", step 2); spike 1's version of the three files is
+`spike/model/variants/baseline/`, which M1 to M3 read. M4 to M6 read the step 4 to 6 artifacts,
+which spike 2 regenerated from the extended model, so each of those sections says where a re-run on
+the current files differs from spike 1's figure.
 
 ## Reproducing the measurements
 
@@ -17,8 +21,8 @@ run from the repository root, with `SYSMLV2_CACHE_DIR` set to a writable directo
 environment holding rdflib and pySHACL (`spike/ENVIRONMENT.md` lists the versions). M1 to M4 call
 the toolkit; M4, M5, and M6 also read the step 4 to 6 artifacts already committed under
 `spike/projection/`, `spike/export/`, and `spike/shapes/`. The script writes the full-json exports
-(about 1.2 MB each) to `<out-dir>` and the files that back the figures below to
-`spike/measurements/`: `m1.json` and `m2.json` (counts, the SHA-256 of every full-json export, and
+(about 1.2 MB each) and M5's per-query results to `<out-dir>` and the files that back the figures
+below to `spike/measurements/`: `m1.json` and `m2.json` (counts, the SHA-256 of every full-json export, and
 the ids compared) and `m6.json`. The figures in this document are from the run with the binary
 built from source at the pinned commit (`spike/ENVIRONMENT.md`, "Re-run for the review fixes").
 
@@ -112,7 +116,7 @@ uses is therefore part of its identity.
 ## M3. What round-tripping loses
 
 Method: `sysmlv2 convert --to compact-json` then `convert --to text --min-qual` on
-`spike/model/pump-library.sysml`; `spike/measurements/m3-roundtrip.sysml` is the output, and
+spike 1's `pump-library.sysml` (`spike/model/variants/baseline/pump-library.sysml`); `spike/measurements/m3-roundtrip.sysml` is the output, and
 `measure.py` checks that a re-run reproduces it.
 
 Not byte-identical (1915 characters in, 1775 out). The diff is formatting and comments: every `//`
@@ -120,7 +124,8 @@ comment is dropped, tabs become four-space indentation, blank lines separating m
 a single-line `@Component { bearer = ...; }` is reformatted across three lines, and
 `doc /* The system ... */` loses the space after `/*` (`doc /*The system ...`). No construct, name,
 short name, or relationship in the file is lost. `sysmlv2 check --strict --lib <lib>
-spike/model/profile.sysml spike/measurements/m3-roundtrip.sysml` exits 0 with no output.
+spike/model/variants/baseline/profile.sysml spike/measurements/m3-roundtrip.sysml` exits 0 with no
+output.
 
 M3 round-trips the library file only. `pump-system.sysml`'s constructs (`satisfy` and `verify`
 usages, feature chains such as `pumpSystemUnderTest.pump`, and `:>>` redefinition) are not
@@ -141,6 +146,12 @@ Three parts of OQ4 are not exercised. The library declares no specialization bet
 classes, so no `rdfs:subClassOf` is emitted and that derivation is untested. The export emits no
 `owl:Ontology`, `owl:versionIRI`, or `owl:imports`. No usage with contextual features,
 redefinition in context, or feature chain is in the library.
+
+These figures are spike 1's. On spike 2's extended model the committed `COVERAGE.md`, which
+`measure.py`'s check now compares with, reports 19 of 19 declared definitions exported and the same
+9 of 11 nested typed features ("Spike 2 results", step 2). The extended library declares one
+specialization, `ControllerSensorLink :> DataLink`, and its export emits the one `rdfs:subClassOf`
+triple for it, so the specialization derivation is exercised once on that model.
 
 ## M5. Projection query size and result equality
 
@@ -163,6 +174,14 @@ projection return the row counts in `spike/projection/QUESTIONS.md` and are expr
 | `unverified-requirements.rq` | 4 | 2 BGP triples + 1 FILTER NOT EXISTS |
 | `orphan-components.rq` | 1 | 2 BGP triples + 1 FILTER NOT EXISTS |
 
+On spike 2's extended model the committed projection returns 3 rows for `orphan-components.rq`
+(the pressure sensor, `embeddedControllerUnderTest`, and `thirdPartyModuleUnderTest`, the two
+components spike 2 adds with no `satisfy` claim) and the same counts for the other four queries.
+Spike 2 step 3 wrote the normative-graph side and counts triple patterns from each query's algebra,
+including those inside OPTIONAL and FILTER NOT EXISTS: 3 to 6 per query on the projection. That
+count replaces the shape column above, which undercounts the basic graph patterns of
+`requirement-satisfied-by.rq` (5 triple patterns) and `requirement-verified-by.rq` (3).
+
 ## M6. Derived shapes catching injected faults
 
 From step 6 (`spike/shapes/FINDINGS.md`, regenerated by `spike/shapes/validate.py`). On the stand-in
@@ -178,6 +197,13 @@ those four shapes. The step 6 run counted a fault as caught when its row had any
 this table would have counted a fault on a `PumpSystem`, `Pump`, or `Controller` row as caught
 whatever the fault; the count above requires a result on the fault's own property.
 
+These are spike 1's shapes. Spike 2 regenerated `spike/shapes/shapes.ttl` from the extended model,
+where `bearer` is `BearerKind[1..*]` ("Spike 2 results", step 2). On the regenerated shapes the same
+count gives 8 of the 10 faults caught on their own property and the same 10 of 18 clean rows
+flagged, with 28 validation results; the two rows not caught carry two distinct bearer values,
+which decision 0005 allows, so they are no longer faults. `spike/measurements/m6.json` and the
+generated part of `spike/shapes/FINDINGS.md` hold this run.
+
 No injected row carries a wrong `rdf:type` (`wrong_bearer_type` is a wrong value type), so M6 does
 not exercise OQ6's case of a record that arrives with the wrong type.
 
@@ -187,8 +213,9 @@ normative graph's class IRIs. Step 7 first ran on holonic `d8d1758`, which preda
 untargeted-node report ([zwelz3/holonic#54](https://github.com/zwelz3/holonic/pull/54)) and
 [zwelz3/holonic#56](https://github.com/zwelz3/holonic/pull/56). Re-run on holonic `067f5ea`: the
 normative holon reports `conforms = True`, health `intact`, no violations, and 507 untargeted nodes
-at Info severity, which is every typed node in its interior. The report now shows the vacuous pass;
-at the default Info severity it does not lower the holon's health.
+at Info severity, which is every typed node in spike 1's graph (630 on spike 2's extended graph,
+step 1 below). The report now shows the vacuous pass; at the default Info severity it does not
+lower the holon's health.
 
 ## Decision rule
 
@@ -219,7 +246,8 @@ on scheme 2, the only scheme the CLI emits; scheme 3 is unmeasured.
 
 ## Generated outputs
 
-`spike/normative/output/pump-system.ttl` (12,068 triples, 507 typed subjects) is regenerated
+`spike/normative/output/pump-system.ttl` (14,928 triples, 630 typed subjects, from spike 2's
+extended model; 12,068 triples and 507 typed subjects on spike 1's model) is regenerated
 byte-for-byte by converting the three model files from the repository root with the toolkit and
 running `spike/normative/convert.py <full.json> pump-system spike/namespace.toml <out.ttl>`.
 
@@ -239,3 +267,146 @@ A regeneration from another source path has the same triple and subject counts a
 element IRIs, as M2's fourth arm predicts: one run with the absolute path of a different clone
 shared none of the 4,061 subject IRIs. The source path of the original run was not recorded, so the
 committed bytes cannot be reproduced.
+
+# Spike 2 results
+
+Covers [zwelz3/weft#2](https://github.com/zwelz3/weft/issues/2)'s items 2 to 5, on branch
+`spike/2-followup`, stacked on spike 1 (`spike/1-graph-contract`) and the buildability review.
+Toolkit commit and SysML-v2-Release commit unchanged from spike 1 (`spike/ENVIRONMENT.md`).
+
+## Step 1 (§1). Holons on Fuseki
+
+A disposable local Apache Jena Fuseki 6.2.0, in-memory dataset, started and stopped by this
+section (`spike/holons/BACKENDS.md`; AGENTS.md rule 1, tier 1). `spike/holons/load_holons.py
+--backend fuseki` loads the normative and projection graphs this branch commits (the normative
+graph has 630 typed subjects and 14,928 triples) and validates the same membranes as the rdflib
+backend. Both committed reports (`spike/holons/rdflib-report.md`, `spike/holons/fuseki-report.md`)
+were generated at holonic `067f5ea`, and the full `MembraneResult` reprs from the two backends are
+byte-identical: same `conforms` verdicts, same health, 0 violations, 0 warnings, 0 infos, and 630
+untargeted nodes for the normative holon on both. Over five runs each, rdflib took 1.42 to 1.97 s
+and Fuseki 4.01 to 5.13 s for the load-and-validate run. Spike 1's finding (the normative holon's
+`conforms = True` is vacuous, because step 5/6's shapes target OWL export classes the normative
+graph's nodes are not instances of) holds identically on both backends, so it is a boundary
+problem, not a backend difference.
+
+holonic already detects it, as spike 1's step 7 re-run found on spike 1's graph (M6 above).
+`MembraneResult.untargeted` lists all 630 typed subjects of the
+normative graph, at Info severity because the boundary declares no `cga:untargetedTypeSeverity`.
+With `<holon> cga:untargetedTypeSeverity sh:Violation` added to the boundary, holonic reports
+`conforms = True` and health compromised (`spike/holons/test_load_holons.py`). The detector is
+therefore the untargeted report with a declared severity, read through health rather than
+`conforms`. Step 2 below does not change this holon's boundary.
+
+## Step 2 (§2). SHACL shapes that target the toolkit's class names
+
+`spike/shapes/normative-shapes.ttl`: three shapes whose `sh:targetClass` is a toolkit metaclass
+(`sysml:MetadataUsage`, `sysml:AttributeUsage`, `sysml:InterfaceDefinition`). Each has focus
+nodes on the raw normative graph, so these three profile shapes are not vacuous there. They do not
+close the membrane gap `spike/holons/BACKENDS.md` recorded in spike 1: the file is not loaded as
+the normative holon's boundary, and loaded as one it targets 18 of the graph's 630 typed subjects
+and leaves 612 untargeted (`spike/holons/test_load_holons.py`). A boundary that targets the whole
+normative graph would need shapes for its other metaclasses or `cga:permitsType` declarations, and
+the detector for what remains untargeted is holonic's untargeted report with a declared severity
+(step 1).
+
+`spike/model/profile.sysml` is brought in line with decisions 0005 to 0007's accepted textual
+forms (open `attribute def BearerKind` in place of the enum; `Interface` on usages and `individual`
+defs, not definitions only), and the pump model gains one element per new case:
+`EmbeddedController` (a two-valued `bearer = (material, information)`), `ThirdPartyModule` (a
+project-declared bearer value, `thirdPartyBinary`), and `ControllerSensorLink` (an `individual
+interface def` specializing `DataLink`) with its usage. `sysmlv2 check --strict --lib` passes on the extended model
+(`spike/model/CHECK.md`).
+
+Step 5's OWL export and step 6's shapes are regenerated from the extended model. Decision 0005's
+`attribute def BearerKind` is an `AttributeDefinition` and `bearer` an `AttributeUsage`, neither of
+which `spike/export/owl_export.py` handled, so the export had dropped the `BearerKind` class and the
+`Component_bearer` property while `spike/export/COVERAGE.md` still reported "18 declared, 18
+exported", because it counted declared definitions from the exporter's own list. Coverage now
+counts declared definitions from the model JSON (19), the exporter and `spike/shapes/shacl_export.py`
+handle both metaclasses (19 of 19 exported), and `shacl_export.py` reads a declared
+`MultiplicityRange`, so `bearer : BearerKind[1..*]` gives `sh:minCount 1` and no `sh:maxCount`.
+The committed `spike/shapes/shapes.ttl` was still spike 1's and targeted `class/BearerKind` and
+`property/Component_bearer`, which the export no longer produced; the regenerated file targets IRIs
+the export produces. On the stand-in instance table, the regenerated shapes catch
+8 of the 10 injected faults on the faulty property instead of 10, or 9 of 10 counting any result on
+the row (`spike/shapes/FINDINGS.md`, spike 2 section; M6 above).
+
+`spike/shapes/test_shacl_export.py` tests non-vacuity on the raw graph. For each of the three
+shapes, a node of the real pump-system normative graph meets the shape's SPARQL precondition (the
+MetadataUsage applies Component; the AttributeUsage is a BearerKind value; the InterfaceDefinition
+is `individual`), and removing or renaming what the constraint checks on that node makes it the
+focus node of a Violation from that shape. A synthetic node violating each shape in turn also
+triggers a Violation, and the shapes conform on the real model. Because the real model (not a
+synthetic fixture) is what conforms, and each shape's constraint is evaluated on it, this is the
+AGENTS.md rule 7 proof that the properties the shapes require at Violation severity are producible
+from `sysmlv2 check`-passing textual notation. 10 of 10 tests in the file pass.
+
+The toolkit stores a metadata feature's assigned value behind a FeatureValue expression tree (a
+`FeatureReferenceExpression`'s `tk:referent` for one value, an `OperatorExpression` with
+`tk:argument` branches above that for a parenthesized list); the min-count shape's property path,
+`(tk:member|tk:argument)*/tk:referent`, walks either shape. Decision 0006's specialization link is
+already an object property in the raw toolkit graph (`Subclassification`'s `tk:general` is an IRI),
+so no extra derivation work was needed there (AGENTS.md rule 5 already holds on the raw graph).
+
+`BearerValueAlignmentAxiomShape` stands in for decision 0005's "every value has exactly one
+alignment axiom" with a list of registered value names in a `NOT IN` filter. It detects a value
+with no axiom. It cannot detect a value with two, because a name list has no way to represent a
+duplicate registration; that half of the rule waits for an alignment file asserted as data, against
+which a shape can count axioms per value.
+
+## Step 3 (§3). M5 against the full normative graph
+
+`spike/projection/full-graph-queries/` has the five thread queries rewritten against the full
+normative graph (`spike/normative/output/pump-system.ttl`), inlining the `construct-*.rq` walks
+spike 1 deferred writing out. `spike/measure.py`'s `m5` runs both query sets, compares the result
+sets of rows, and writes per-query stats to `<out-dir>/m5-full-graph.md` (no tracked file is
+written). `spike/projection/test_m5_full_graph.py` is the regression fence; all five comparisons
+are equal.
+
+| Query | Projection (lines / triples / path steps / ms) | Full graph (lines / triples / path steps / ms) | Triple patterns, full minus projection | Rows | Equal |
+|---|---|---|---|---|---|
+| `orphan-components.rq` | 11 / 4 / 0 / 0.78 | 18 / 10 / 0 / 1.72 | +6 | 3 | yes |
+| `requirement-satisfied-by.rq` | 11 / 6 / 0 / 0.69 | 11 / 5 / 0 / 0.54 | -1 | 6 | yes |
+| `requirement-verified-by.rq` | 8 / 3 / 0 / 0.15 | 12 / 6 / 0 / 0.20 | +3 | 2 | yes |
+| `unsatisfied-requirements.rq` | 11 / 4 / 0 / 0.57 | 12 / 4 / 0 / 0.62 | 0 | 0 | yes |
+| `unverified-requirements.rq` | 8 / 3 / 0 / 0.41 | 15 / 7 / 0 / 0.74 | +4 | 4 | yes |
+
+Run times are one execution per query, with no warm-up or repetition. They do not support a
+comparison between the two graphs: a later check that ran each query 51 times in another session
+gave medians from 0.51 to 2.81 ms on the projection and from 0.88 to 6.43 ms on the full graph, with
+the full-graph `orphan-components.rq` the slowest. Those repeated runs are not committed.
+
+Three of the five full-graph queries needed more triple patterns than their projection
+equivalents (3, 4, and 6 more: the usage-to-definition and verification-membership walks the
+projection flattens). `unsatisfied-requirements.rq` needed the same number, and
+`requirement-satisfied-by.rq` needed one fewer, because the projected query's `OPTIONAL { ?claim
+proj:verdict ?verdict }` has no counterpart in the graph and `m5` attaches the verdict outside the
+query (below). None needed a property-path operator: each `proj:` term resolves through a short,
+fixed chain of named toolkit properties, not a variable-length path. This answers OQ10's deferred
+question for this model (630 typed elements): a projected query ranges from one triple pattern
+longer to six shorter than its full-graph equivalent, a small, fixed number of joins rather than an
+asymptotic difference.
+
+Three limits on the equality column. Equality compares sets of rows, so it does not check row order
+or duplicate rows. `unsatisfied-requirements.rq` returns 0 rows on both graphs, so its equality is
+vacuous on this model. For `requirement-satisfied-by.rq`, the verdict column is not a graph triple:
+`m5` attaches it to the full-graph rows by the same `sysmlv2 verify` text match
+`spike/projection/project.py` uses for the projection, so the verdict column agrees by construction
+and the comparison is independent evidence for the other three columns only.
+
+## Step 4 (§4). Id scheme 3 through the Python bindings
+
+The `sysmlv2-py` bindings build cleanly at the pinned commit with `maturin` (`spike/ENVIRONMENT.md`
+has the exact command; Rust installed via `rustup` with no shell-profile changes, since this
+environment's home directory is read-only). M1 and M2 do not run for scheme 3. The bindings expose
+four `Session` constructors: `from_files`, `from_sources`, and `from_interchange_json` build with
+`GraphFormat::LegacyV2` (scheme 2), and `from_compact_cbor` takes the graph format a CBOR payload's
+header names, so it can open a scheme-3 payload but cannot produce one from textual notation. No
+`#[pymethods]` in `crates/sysmlv2-py/src/` wraps `Session::from_sources_with_graph_format` (in
+`sysmlv2-transform`) or `Model::with_graph_format` (in `sysmlv2-model`), the two Rust-level entry
+points `IDS.md` documents for scheme 3. `spike/ids/probe_scheme3.py` confirms this by inspecting the
+binding crate's source; `spike/ids/test_probe_scheme3.py` repeats the inspection against the
+checkout `WEFT_TOOLKIT_SRC` names and checks the installed wheel's constructor names. Pointed at a
+later release's checkout, it fails if that release's binding crate mentions a graph-format API. This
+narrows OQ2 further than spike 1 did: at 0.10.2, neither the CLI nor the Python bindings can build a
+scheme-3 model from textual notation.

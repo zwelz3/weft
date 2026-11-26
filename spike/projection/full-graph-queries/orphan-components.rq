@@ -1,0 +1,29 @@
+# Spike 2 step 3: equivalent of queries/orphan-components.rq, run directly
+# against the full normative graph (spike/normative/output/pump-system.ttl)
+# instead of the projection (spike/projection/output.ttl). proj:Component /
+# proj:shortName inline to the usage-to-definition walk
+# spike/projection/construct-components.rq performs; proj:SatisfyClaim /
+# proj:satisfiedBy inline to sysml:SatisfyRequirementUsage /
+# tk:satisfyingFeature. Same result rows as the projected query (same
+# underlying element IRIs; spike/projection/test_project.py asserts this).
+#
+# Expected columns: ?component ?shortName
+PREFIX sysml: <https://www.omg.org/spec/SysML/20250201/>
+PREFIX tk: <https://weft.ghostsystems.ai/spike1/toolkit-vocab#>
+
+SELECT ?component ?shortName
+WHERE {
+  ?compDef a sysml:MetadataDefinition ;
+           tk:declaredName "Component" .
+  ?metadata a sysml:MetadataUsage ;
+            tk:type ?compDef ;
+            tk:annotatedElement ?def .
+  ?component a sysml:PartUsage ;
+             tk:declaredShortName ?shortName ;
+             tk:type ?def .
+  FILTER NOT EXISTS {
+    ?claim a sysml:SatisfyRequirementUsage ;
+           tk:satisfyingFeature ?component .
+  }
+}
+ORDER BY ?shortName
