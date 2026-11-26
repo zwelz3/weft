@@ -2,7 +2,7 @@
 
 Weft connects the requirements, interfaces, and components in a SysML v2 model to the tickets, commits, tests, decision records, and records in other systems that make up the rest of an engineering digital thread. The model is kept as SysML v2 textual notation in git, and Weft derives the RDF graphs that the thread queries and validates.
 
-The project is in design. The repository holds design documents and no code.
+The project is in design. The repository holds design documents, thread queries, and a package skeleton with no functionality yet.
 
 ## Intended workflow
 
@@ -21,7 +21,7 @@ Links to external artifacts use the OSLC link vocabulary (`oslc_rm:implementedBy
 
 ## Git for everyone, Flexo MMS for those who adopt it
 
-Git is the record. Every core feature works on a git checkout without a server, and a team that runs [Flexo MMS](https://github.com/Open-MBEE) gains shared, versioned, multi-project querying from a one-way mirror of its git history. [docs/decisions/0001-git-is-the-record.md](docs/decisions/0001-git-is-the-record.md) states the tiers and the reasons for them.
+Git is the record. Every core feature works on a git checkout without a server, and a team that runs [Flexo MMS](https://github.com/Open-MBEE/flexo-mms-layer1-service) gains shared, versioned, multi-project querying from a one-way mirror of its git history. [docs/decisions/0001-git-is-the-record.md](docs/decisions/0001-git-is-the-record.md) states the tiers and the reasons for them.
 
 ## Related projects
 
@@ -43,3 +43,7 @@ Weft is a Python library (decision 0004). The deployed quad store is Apache Jena
 - [docs/decisions/](docs/decisions/) holds the decision records.
 - [docs/plans/](docs/plans/) holds briefs for work that has not started.
 - [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) lists the design questions that are not yet decided, with the current leaning for each.
+
+## License
+
+Weft is licensed under the Apache License 2.0; the text is in [LICENSE](LICENSE).
