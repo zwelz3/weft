@@ -8,3 +8,6 @@ dist/
 # Regenerated on demand; spike/RESULTS.md records its hash and triple count.
 spike/normative/output/quadcopter.ttl
 spike/normative/output/*.gaps.txt
+
+# Session handoff, rewritten by .claude/hooks/handoff.py (AGENTS.md rule 17).
+.claude/handoff.md
