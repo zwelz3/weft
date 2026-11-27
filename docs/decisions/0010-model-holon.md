@@ -38,9 +38,15 @@ Nothing is authored in a model holon. A model that the versions do not derive (a
 
 Adapters, reports, and external links address the model holon, whose IRI does not change when the current ref does. A query about one ref, or a comparison of two, still addresses version holons through the scoped query helper ([zwelz3/holonic#52](https://github.com/zwelz3/holonic/issues/52)). The open question in that issue (whether the helper rejects a scope containing two versions of one thing) gains a structural test, since two members of one model holon are two versions of one model.
 
-The model holon's interior is never a union of versions, so validating the model holon validates the current ref and OQ3 holds for it. Its cost is one materialized copy of the current ref's normative graph, rebuilt on each refresh.
+The model holon's interior is never a union of versions, so validating the model holon validates the current ref and OQ3 holds for it.
 
 A refresh needs two operations holonic does not provide: a traversal that replaces the target interior instead of adding to it, and the replacement of a registered boundary graph. Each needs a holonic issue, like the enhancements decision 0003 lists; neither is filed. Until they exist, a refresh is a SPARQL update against the backend, which bypasses holonic's metadata refresh.
+
+A refresh is not atomic. The interior is empty between the removal and the traversal, so a reader on a shared store (the Fuseki backend) can see a partial model, and a refresh that fails between the two steps leaves the model holon registered with an empty interior. A replace-mode traversal that performs both steps in one SPARQL update closes that window on a store that applies an update atomically; the probe did not test this on either backend.
+
+The model holon lags the current ref. Between a change to the current ref and the refresh that follows it, the model holon holds the previous state, so the refresh runs in the same step that derives the new version holon, and a consumer that needs the state of one commit reads that commit's version holon.
+
+The current ref's normative graph is stored twice, in its version holon and in the model holon. At tier 0 the rdflib backend holds both copies in memory.
 
 Model holon IRIs and version holon IRIs join the graph contract ([docs/graph-contract.md](../graph-contract.md)), so a change to how they are minted is a data migration (AGENTS.md rule 3).
 
@@ -53,6 +59,15 @@ Decision 0003's layer table and OQ3 gain the model holon when this record is acc
 - Whether adapter portals target the model holon. Their triples would share its interior with the current ref's, and a content-matched rollback of one source can remove triples the other also supplied.
 
 ## Alternatives considered
+
+| Option | Holon that consumers and portals address | Validation at the model level | Work on a change of the current ref | holonic changes | Stale or partial reads | Extra storage |
+|---|---|---|---|---|---|---|
+| Model holon holding the current ref (this decision) | The model holon, unchanged across refs | Validates the current ref | Remove the previous ref's content, then traverse | Replace-mode traversal, boundary replacement | After a ref change until its refresh, and during the refresh | One copy of the current ref |
+| Model holon with an empty interior | The current ref's version holon; the model holon serves membership and discovery | None | Update the recorded current ref and re-register portals | None | None | None |
+| Current-ref pointer, no model holon | The current ref's version holon | None | Update the configuration and re-register portals | None | None | None |
+| Model holon holding every version | The model holon, unchanged across refs | Fails once two versions are present | Traverse the new ref | None | After a ref change until its traversal | Every version |
+
+Authored content in the model holon is the fifth alternative; AGENTS.md rule 1 excludes it, so the table omits it.
 
 A model holon whose interior holds every version. Rejected because it is the merged validation OQ3 rules out; in the probe the aggregate's membrane failed as soon as it held two versions.
 
