@@ -1,14 +1,17 @@
 """Maintain .claude/handoff.md across compaction and /clear.
 
-Usage: handoff.py precompact | sessionstart
+Usage: handoff.py precompact | sessionstart [--json]
 
 Both commands replace the block between BEGIN and END with the repository
 state read from git, appending the block if it is absent, and keep every other
 line of the file unchanged. precompact prints instructions for the
 compaction summary; sessionstart prints the handoff for the new context,
-shortened to fit the hook output limit. Reads only the local checkout.
+shortened to fit the hook output limit. With --json, sessionstart prints the
+handoff as hookSpecificOutput.additionalContext, for harnesses that ignore
+plain hook output. Reads only the local checkout.
 """
 
+import json
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -131,7 +134,12 @@ def main(argv):
         write("before compaction")
         print(SUMMARY_INSTRUCTIONS)
     elif command == "sessionstart":
-        print(restored(write("session start")))
+        text = restored(write("session start"))
+        if "--json" in argv[2:]:
+            text = json.dumps(
+                {"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": text}}
+            )
+        print(text)
     else:
         print(__doc__, file=sys.stderr)
         return 1

@@ -43,9 +43,9 @@ def test_handoff_is_not_committed():
     assert ".claude/handoff.md" in ignored
 
 
-def run(repo, command):
+def run(repo, *args):
     return subprocess.run(
-        [sys.executable, str(repo / SCRIPT), command],
+        [sys.executable, str(repo / SCRIPT), *args],
         capture_output=True, text=True, encoding="utf-8", check=True,
     ).stdout
 
@@ -96,3 +96,14 @@ def test_text_outside_the_generated_block_survives(tmp_path):
     assert "Appended after the state: merge #5." in rewritten
     assert rewritten.count("## Repository state") == 1
     assert "(session start)" in rewritten
+
+
+def test_json_output_carries_the_handoff_as_additional_context(tmp_path):
+    repo = sandbox(tmp_path)
+    run(repo, "precompact")
+    handoff = repo / ".claude/handoff.md"
+    handoff.write_text(handoff.read_text(encoding="utf-8").replace("None recorded.", "Merge #7."), encoding="utf-8")
+    output = json.loads(run(repo, "sessionstart", "--json"))["hookSpecificOutput"]
+    assert output["hookEventName"] == "SessionStart"
+    assert "Merge #7." in output["additionalContext"]
+    assert "(session start)" in output["additionalContext"]
