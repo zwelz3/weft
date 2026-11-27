@@ -1,14 +1,17 @@
 """Maintain .claude/handoff.md across compaction and /clear.
 
-Usage: handoff.py precompact | sessionstart
+Usage: handoff.py precompact | sessionstart [--json]
 
 Both commands replace the block between BEGIN and END with the repository
 state read from git, appending the block if it is absent, and keep every other
 line of the file unchanged. precompact prints instructions for the
 compaction summary; sessionstart prints the handoff for the new context,
-shortened to fit the hook output limit. Reads only the local checkout.
+shortened to fit the hook output limit. With --json, sessionstart prints the
+handoff as hookSpecificOutput.additionalContext, for harnesses that ignore
+plain hook output. Reads only the local checkout.
 """
 
+import json
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -113,25 +116,40 @@ def write(event):
     return text
 
 
-def restored(text):
+def restored(text, limit=OUTPUT_LIMIT):
     header = (
         "Handoff from the previous context, from .claude/handoff.md. Each claim is"
         " checked against git and GitHub before it is acted on.\n\n"
     )
-    if len(header) + len(text) > OUTPUT_LIMIT:
+    if len(header) + len(text) > limit:
         cut = f"\n\n[Shortened to fit the hook output limit; the full text is in {HANDOFF}.]"
-        text = text[: OUTPUT_LIMIT - len(header) - len(cut)] + cut
+        text = text[: limit - len(header) - len(cut)] + cut
     return header + text
+
+
+def hook_json(context):
+    output = {"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context}}
+    return json.dumps(output, ensure_ascii=False)
+
+
+def restored_json(text):
+    limit = OUTPUT_LIMIT
+    output = hook_json(restored(text, limit))
+    while len(output) > OUTPUT_LIMIT:
+        limit -= len(output) - OUTPUT_LIMIT
+        output = hook_json(restored(text, limit))
+    return output
 
 
 def main(argv):
     sys.stdout.reconfigure(encoding="utf-8")
-    command = argv[1] if len(argv) > 1 else ""
-    if command == "precompact":
+    command, options = (argv[1] if len(argv) > 1 else ""), argv[2:]
+    if command == "precompact" and not options:
         write("before compaction")
         print(SUMMARY_INSTRUCTIONS)
-    elif command == "sessionstart":
-        print(restored(write("session start")))
+    elif command == "sessionstart" and options in ([], ["--json"]):
+        text = write("session start")
+        print(restored_json(text) if options else restored(text))
     else:
         print(__doc__, file=sys.stderr)
         return 1

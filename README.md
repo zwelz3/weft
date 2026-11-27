@@ -37,6 +37,12 @@ Git is the record. Every core feature works on a git checkout without a server, 
 
 Weft is a Python library (decision 0004). The deployed quad store is Apache Jena Fuseki, and tier 0 runs on an in-memory rdflib store. Sources such as Excel workbooks and Teamwork Cloud reach the thread through adapters, each with its own ontology; no central ontology unifies them, and Weft links to them through holonic alignment holons and portals.
 
+## Agent sessions
+
+`.claude/handoff.md` carries an orchestrating session's notes across compaction and `/clear` (AGENTS.md rule 17). The hooks in `.claude/settings.json` run `.claude/hooks/handoff.py`, which rewrites the file's repository state from git and returns the file to the new context. Claude Code reads that settings file from the session's project directory, so a session started in a parent of this checkout runs none of its hooks and loses its `includeCoAuthoredBy: false` (rule 11). For such a session, the parent directory's `.claude/settings.json` sets `includeCoAuthoredBy: false` and repeats both hooks with the script's absolute path, `PreCompact` running `handoff.py precompact` and `SessionStart` with the matcher `compact|clear` running `handoff.py sessionstart`. A user-level hook does not serve, because it also fires in sessions started in this checkout (injecting the handoff twice) and in unrelated projects.
+
+In a harness that runs none of these hooks, the agent runs `python .claude/hooks/handoff.py sessionstart` at the start of a session and after each compaction, and reads its output as the handoff. A harness whose hooks follow Claude Code's JSON protocol but ignore plain output, such as JCode (`~/.jcode/hooks.json`), calls the script with `sessionstart --json` from its `SessionStart` hook, which places the handoff in `hookSpecificOutput.additionalContext`. JCode 0.13 has no compaction event, so after a compaction in JCode the agent runs the script itself.
+
 ## Documents
 
 - [STATUS.md](STATUS.md) records the current state and open work.
