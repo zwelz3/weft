@@ -1,10 +1,10 @@
 # Status
 
-State of the project as of 2026-11-26. The session that changes the project's state updates this file before it ends; [AGENTS.md](AGENTS.md) holds the rules that do not change from session to session.
+State of the project as of 2026-11-27. The session that changes the project's state updates this file before it ends; [AGENTS.md](AGENTS.md) holds the rules that do not change from session to session.
 
 ## Phase
 
-Design, with a package skeleton and spike evidence. The repository holds decision records 0001 to 0009, open questions OQ1 to OQ16, plans for the profile, the adopter's capabilities, and the 1.0 release, five thread queries, a draft graph contract, the results of spikes 1 and 2 under `spike/`, public stand-in data under `data/fprime-comccsds/`, and a `weft` package with no functionality beyond its version. CI builds the sysml-toolkit wheel at the pinned commit and runs the tests on Linux and Windows for Python 3.11 to 3.13.
+Design, with a package skeleton and spike evidence. The repository holds decision records 0001 to 0009 and proposed record 0010, open questions OQ1 to OQ16, plans for the profile, the adopter's capabilities, and the 1.0 release, five thread queries, a draft graph contract, the results of spikes 1 and 2 under `spike/`, public stand-in data under `data/fprime-comccsds/`, and a `weft` package with no functionality beyond its version. CI builds the sysml-toolkit wheel at the pinned commit and runs the tests on Linux and Windows for Python 3.11 to 3.13.
 
 ## Blockers
 
@@ -35,6 +35,7 @@ Issues labeled `blocker` stop the next step of work; `blocked` marks work waitin
 
 | Item | Location | State | Next action |
 |---|---|---|---|
+| Model holon | [docs/decisions/0010-model-holon.md](docs/decisions/0010-model-holon.md) | Proposed: a `cga:AggregateHolon` per model holds the current ref, and version holons are its members | The person accepts, revises, or rejects it. On acceptance, decision 0003 and OQ3 gain the model holon, and two holonic issues are filed (replace-mode traversal, boundary replacement) |
 | Adopter capabilities | [docs/plans/adopter-capabilities.md](docs/plans/adopter-capabilities.md) | Drafted; four of five questions answered | User stories are requirements or concerns with a stakeholder (decision 0008). Link types: [zwelz3/weft#17](https://github.com/zwelz3/weft/issues/17). Kotar check: [zwelz3/weft#13](https://github.com/zwelz3/weft/issues/13) |
 | Data for the spike | [zwelz3/weft#1](https://github.com/zwelz3/weft/issues/1) | Public stand-in merged in [zwelz3/weft#10](https://github.com/zwelz3/weft/pull/10) under `data/fprime-comccsds/`; the issue stays open for the adopter's own component | Use the stand-in in [zwelz3/weft#22](https://github.com/zwelz3/weft/issues/22) |
 | Spikes 1 and 2 | [spike/RESULTS.md](spike/RESULTS.md) | Done; merged in [zwelz3/weft#8](https://github.com/zwelz3/weft/pull/8) and [zwelz3/weft#9](https://github.com/zwelz3/weft/pull/9), and [zwelz3/weft#2](https://github.com/zwelz3/weft/issues/2) closed | Steps 6 and 7 on the F Prime data: [zwelz3/weft#22](https://github.com/zwelz3/weft/issues/22) |
